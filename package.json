@@ -1,0 +1,29 @@
+{
+  "name": "react-native-sqlite-helper",
+  "version": "1.0.3",
+  "description": "react-native-sqlite-helper is based on andpor/react-native-sqlite-storage",
+  "main": "sqliteHelper.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/longlongago2/react-native-sqlite-helper.git"
+  },
+  "keywords": [
+    "react",
+    "naitve",
+    "sqlite",
+    "helper",
+    "react-native-sqlite-storage"
+  ],
+  "author": "zhanggl",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/longlongago2/react-native-sqlite-helper/issues"
+  },
+  "homepage": "https://github.com/longlongago2/react-native-sqlite-helper#readme",
+  "dependencies": {
+    "react-native-sqlite-storage": "^3.3.3"
+  }
+}
