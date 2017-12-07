@@ -2,75 +2,90 @@
 
 This repository is based on *[andpor/react-native-sqlite-storage](https://github.com/andpor/react-native-sqlite-storage)*, you should install and link react-native-sqlite-storage first.
 
+这个库是基于 *[andpor/react-native-sqlite-storage](https://github.com/andpor/react-native-sqlite-storage)* ，请先 install 和 link react-native-sqlite-storage
+
 Features:
 
-(1) use Promise
+(1) use Promise | *使用Promise*
 
-(2) be based on react-native-sqlite-storage *[(readme)](https://github.com/andpor/react-native-sqlite-storage)*
+(2) be based on react-native-sqlite-storage *[(readme)](https://github.com/andpor/react-native-sqlite-storage)* | 基于 react-native-sqlite-storage
+
+(3)parameterized SQL | 参数化的SQL
 
 
-## api
+## api | 接口方法
 
-**1.instantiation**
+**1.instantiation | 实例化**
 
 `const sqLite = new SQLite(`
+
 `databaseName:string,`
+
 `databaseVersion:string,`
+
 `databaseDisplayName:string,`
+
 `databaseSize:number);`
 
 
-**2.open database**
+**2.open database | 连接 database**
 
 `sqLite.open();`
 
-**3.close database**
+**3.close database | 关闭 database**
 
 `sqLite.close();`
 
-**4.delete database**
+**4.delete database | 删除 database**
 
 `sqLite.delete();`
 
-**5.creteTable**
+**5.creteTable | 创建表**
 
 `sqLite.createTable(tableInfo:object);`
 
-**6.dropTable**
+**6.dropTable | 删除表**
 
 `sqLite.dropTable(tableName:string);`
 
-**7.insertItems**
+**7.insertItems | 插入数据（支持多条）**
 
 `sqLite.insertItems(tableName:string,items:Array<object>);`
 
-**8.deleteItem**
+**8.deleteItem | 删除数据**
 
 `sqLite.deleteItem(tableName:string,condition:object);`
 
-**9.updateItem**
+**9.updateItem | 更新数据**
 
 `sqLite.updateItem(tableName:string,item:object,condition:object);`
 
-**10.selectItems**
+**10.selectItems | 查询数据**
 
 `sqLite.selectItems(`
+
 `tableName:string,`
+
 `columns:Array<string>|*,`
+
 `condition:object|null,`
+
 `pagination?:number,`
+
 `perPageNum?:number);`
 
-**11.Promise resolve data**
+**11.Promise resolve data | Promise返回值格式**
 
 `const {res,err} = resolve_data;`
 
 `res:any|'undefined' (success data,if error return 'undefined')`
 `err:Error|'undefined' (error data, if success return 'undefined')`
 
-## example
+## example | 例子
 
 ```
+ // use es6 async/await
+
  async _handleSQLite() {
         const sqLite = new SQLite('test.db', '1.0', 'users', 2000);
         // 开启数据库
