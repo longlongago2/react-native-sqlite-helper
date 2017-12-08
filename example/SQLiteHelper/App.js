@@ -5,10 +5,10 @@
  */
 
 import React, { Component } from 'react';
-import SQLiteExample from './src/sqlite';
+import Index from './src';
 
 export default class App extends Component<{}> {
     render() {
-        return <SQLiteExample />;
+        return <Index />;
     }
 }
