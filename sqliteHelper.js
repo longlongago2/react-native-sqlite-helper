@@ -40,55 +40,52 @@ export default class SQLite {
     }
 
     async _open() {
-        let result = {};
-        await SQLiteStorage.openDatabase(
+        const result = await SQLiteStorage.openDatabase(
             this.databaseName,
             this.databaseVersion,
             this.databaseDisplayName,
             this.databaseSize)
             .then((db) => {
                 this.successInfo('open');
-                this.db = db;
-                result = { res: db };
+                return { res: db };
             })
             .catch((err) => {
                 this.errorInfo('open', err);
-                result = { err };
+                return { err };
             });
+        if (result.res) {
+            this.db = result.res;
+        }
         return result;
     }
 
     async _delete() {
-        let result = {};
-        await SQLiteStorage.deleteDatabase(this.databaseName)
+        return await SQLiteStorage.deleteDatabase(this.databaseName)
             .then((res) => {
                 this.successInfo('deleteDataBase');
-                result = { res };
+                return { res };
             })
             .catch((err) => {
                 this.errorInfo('deleteDataBase', err);
-                result = { err };
+                return { err };
             });
-        return result;
     }
 
     async _close() {
-        let result = {};
         if (this.db) {
-            await this.db.close()
+            return await this.db.close()
                 .then(() => {
                     this.successInfo('close');
-                    result = { res: ['database was closed'] };
+                    return { res: ['database was closed'] };
                 })
                 .catch((err) => {
                     this.errorInfo('close', err);
-                    result = { err };
+                    return { err };
                 });
         } else {
             this.successInfo('SQLiteStorage not open', true);
         }
         this.db = null;
-        return result;
     }
 
     async _createTable(tableInfo) {
@@ -96,47 +93,42 @@ export default class SQLite {
         if (!this.db) {
             await this.open();
         }
-        let result = {};
         // sql语句累加
         const sqlStr = tableFields.reduce((sqlSegment, field, index, arr) => (
             `${sqlSegment} ${field.columnName} ${field.dataType} ${index + 1 === arr.length ? ');' : ','}`
         ), `CREATE TABLE IF NOT EXISTS ${tableName}(`);
         // 创建表
-        await this.db.executeSql(sqlStr)
+        return await this.db.executeSql(sqlStr)
             .then((res) => {
                 this.successInfo('createTable');
-                result = { res };
+                return { res };
             })
             .catch((err) => {
                 this.errorInfo('createTable', err);
-                result = { err };
+                return { err };
             });
-        return result;
     }
 
     async _dropTable(tableName) {
         if (!this.db) {
             await this.open();
         }
-        let result = {};
         // 删除表
-        await this.db.executeSql(`DROP TABLE ${tableName};`)
+        return await this.db.executeSql(`DROP TABLE ${tableName};`)
             .then((res) => {
                 this.successInfo('dropTable');
-                result = { res };
+                return { res };
             })
             .catch((err) => {
                 this.errorInfo('dropTable', err);
-                result = { err };
+                return { err };
             });
-        return result;
     }
 
     async _insertItems(tableName, items) {
         if (!this.db) {
             await this.open();
         }
-        let result = {};
         const sqlStrArr = items.map((item) => {
             const columns = Object.keys(item);
             let sqlStr = columns.reduce((sqlSegment, columnName, index, arr) => (
@@ -147,23 +139,21 @@ export default class SQLite {
             ), ' VALUES (');
             return sqlStr;
         });
-        await this.db.sqlBatch(sqlStrArr)
+        return await this.db.sqlBatch(sqlStrArr)
             .then(() => {
                 this.successInfo('insertItemsBatch');
-                result = { res: ['databases execute sqlBatch success'] };
+                return { res: ['databases execute sqlBatch success'] };
             })
             .catch((err) => {
                 this.errorInfo('insertItemsBatch', err);
-                result = { err };
+                return { err };
             });
-        return result;
     }
 
     async _deleteItem(tableName, condition) {
         if (!this.db) {
             await this.open();
         }
-        let result = {};
         let sqlStr;
         if (condition && typeof condition === 'object' && condition !== {}) {
             const conditionKeys = Object.keys(condition);
@@ -173,16 +163,15 @@ export default class SQLite {
         } else {
             sqlStr = `DELETE FROM ${tableName}`;
         }
-        await this.db.executeSql(sqlStr)
+        return await this.db.executeSql(sqlStr)
             .then((res) => {
                 this.successInfo(`SQLiteStorage deleteItem success: 影响 ${res[0].rowsAffected} 行`, true);
-                result = { res };
+                return { res };
             })
             .catch((err) => {
                 this.errorInfo('deleteItem', err);
-                result = { err };
+                return { err };
             });
-        return result;
     }
 
     async _updateItem(tableName, item, condition) {
@@ -190,7 +179,6 @@ export default class SQLite {
             await this.open();
         }
         const columns = Object.keys(item);
-        let result = {};
         let sqlStr;
         sqlStr = columns.reduce((sqlSegment, columnName, index, arr) => (
             `${sqlSegment} ${columnName}='${item[columnName]}' ${index + 1 !== arr.length ? ',' : ''}`
@@ -199,23 +187,21 @@ export default class SQLite {
         sqlStr += conditionKeys.reduce((sqlSegment, conditionKey, index, arr) => (
             `${sqlSegment} ${conditionKey}='${condition[conditionKey]}' ${index + 1 !== arr.length ? 'AND' : ';'}`
         ), ' WHERE');
-        await this.db.executeSql(sqlStr)
+        return await this.db.executeSql(sqlStr)
             .then((res) => {
                 this.successInfo(`SQLiteStorage updateItem success: 影响 ${res[0].rowsAffected} 行`, true);
-                result = { res };
+                return { res };
             })
             .catch((err) => {
                 this.errorInfo('updateItem', err);
-                result = { err };
+                return { err };
             });
-        return result;
     }
 
     async _selectItems(tableName, columns, condition, pagination, perPageNum) {
         if (this.db) {
             await this.open();
         }
-        let result = {};
         let sqlStr;
         if (columns === '*') {
             if (condition && condition !== {} && typeof condition === 'object') {
@@ -246,7 +232,7 @@ export default class SQLite {
         } else {
             sqlStr += ';';
         }
-        await this.db.executeSql(sqlStr)
+        return await this.db.executeSql(sqlStr)
             .then((res) => {
                 const queryResult = [];
                 this.successInfo(`SQLiteStorage selectItems success: 查询到 ${res[0].rows.length} 行`, true);
@@ -254,12 +240,11 @@ export default class SQLite {
                 for (let i = 0; i < len; i++) {
                     queryResult.push(res[0].rows.item(i));
                 }
-                result = { res: queryResult };
+                return { res: queryResult };
             })
             .catch((err) => {
                 this.errorInfo('selectItems', err);
-                result = { err };
+                return { err };
             });
-        return result;
     }
 }

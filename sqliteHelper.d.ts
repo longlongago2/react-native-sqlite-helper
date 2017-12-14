@@ -30,11 +30,11 @@ export default class SQLite {
     close: () => Result;
     createTable: (tableInfo: Table) => Result;
     dropTable: (tableName: string) => Result;
-    insertItems: (tableName: string, items: Array<object>) => Result;
+    insertItems: (tableName: string, items: object[]) => Result;
     deleteItem: (tableName: string, condition?: object) => Result;
     updateItem: (tableName: string, item: object, condition: object) => Result;
     selectItems: (tableName: string,
-                  columns: Array<string> | '*',
+                  columns: string[] | '*',
                   condition: object | null,
                   pagination?: number,
                   perPageNum?: number) => Result;
