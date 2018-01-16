@@ -10,12 +10,16 @@ Features:
 
 (2) be based on react-native-sqlite-storage *[(readme)](https://github.com/andpor/react-native-sqlite-storage)* | 基于 react-native-sqlite-storage
 
-(3)parameterized SQL | 参数化的SQL
+(3) parameterized SQL | 参数化的SQL
+
+(4) prefer generator function | 统一返回的数据结构 {res,err}
 
 
 ## api | 接口方法
 
 **1.instantiation | 实例化**
+
+`import SQLite from 'react-native-sqlite-helper';`
 
 `const sqLite = new SQLite(`
 
@@ -27,7 +31,6 @@ Features:
 
 `databaseSize:number);`
 
-
 **2.open database | 连接 database**
 
 `sqLite.open();`
@@ -36,9 +39,9 @@ Features:
 
 `sqLite.close();`
 
-**4.delete database | 删除 database**
+**4.delete database(static) | 删除 database（静态方法）**
 
-`sqLite.delete();`
+`SQLite.delete(database:string) => Promise;`
 
 **5.creteTable | 创建表**
 
@@ -92,7 +95,7 @@ Features:
         const { res: db, err: err1 } = await sqLite.open();
         console.log(db, err1);
         // 删除db
-        const { res: res2, err: err2 } = await sqLite.delete();
+        const { res: res2, err: err2 } = await SQLite.delete('test.db').then(res => ({ res })).catch(err => ({ err }));
         console.log(res2, err2);
         // 关闭数据库
         const { res: res3, err: err3 } = await sqLite.close();
