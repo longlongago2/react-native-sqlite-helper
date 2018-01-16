@@ -4,6 +4,10 @@ SQLiteStorage.DEBUG(__DEV__);       // 启动调试信息
 SQLiteStorage.enablePromise(true);  // 使用 promise(true) 或者 callback(false)
 
 export default class SQLite {
+    static delete(database) {
+        return SQLiteStorage.deleteDatabase(database);
+    }
+
     constructor(databaseName, databaseVersion, databaseDisplayName, databaseSize) {
         this.databaseName = databaseName;
         this.databaseVersion = databaseVersion;
@@ -30,7 +34,6 @@ export default class SQLite {
         };
         this.open = this._open.bind(this);
         this.close = this._close.bind(this);
-        this.delete = this._delete.bind(this);
         this.createTable = this._createTable.bind(this);
         this.dropTable = this._dropTable.bind(this);
         this.insertItems = this._insertItems.bind(this);
@@ -57,18 +60,6 @@ export default class SQLite {
             this.db = result.res;
         }
         return result;
-    }
-
-    async _delete() {
-        return await SQLiteStorage.deleteDatabase(this.databaseName)
-            .then((res) => {
-                this.successInfo('deleteDataBase');
-                return { res };
-            })
-            .catch((err) => {
-                this.errorInfo('deleteDataBase', err);
-                return { err };
-            });
     }
 
     async _close() {
