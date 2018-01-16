@@ -54,7 +54,7 @@ class Index extends PureComponent {
 
     async _handleDelete() {
         // 删除db
-        const { res, err } = await sqLite.delete();
+        const { res, err } = await SQLite.delete('test.db').then(res => ({ res })).catch(err => ({ err }));
         this.handleConsoleLog(res, err, 'database已删除！', 'database删除失败！');
     }
 

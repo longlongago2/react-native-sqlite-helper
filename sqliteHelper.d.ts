@@ -39,5 +39,5 @@ export default class SQLite {
                   pagination?: number,
                   perPageNum?: number) => Result;
 
-    static delete: (database: string) => Promise;
+    static delete(database: string): Promise;
 }

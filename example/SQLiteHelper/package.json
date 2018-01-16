@@ -9,7 +9,7 @@
   "dependencies": {
     "react": "16.0.0",
     "react-native": "0.51.0",
-    "react-native-sqlite-helper": "^1.0.3-beta0.3",
+    "react-native-sqlite-helper": "^1.0.5",
     "react-native-sqlite-storage": "^3.3.4"
   },
   "devDependencies": {
