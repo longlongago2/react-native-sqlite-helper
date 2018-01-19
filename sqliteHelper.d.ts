@@ -22,6 +22,8 @@ interface Result {
 }
 
 export default class SQLite {
+    static delete(database: string): Result;
+
     constructor(props: SQLiteProps);
 
     successInfo: (name: string, absolutely?: boolean) => void;
@@ -38,6 +40,4 @@ export default class SQLite {
                   condition: object | null,
                   pagination?: number,
                   perPageNum?: number) => Result;
-
-    static delete(database: string): Promise;
 }

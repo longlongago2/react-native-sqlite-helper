@@ -5,7 +5,9 @@ SQLiteStorage.enablePromise(true);  // 使用 promise(true) 或者 callback(fals
 
 export default class SQLite {
     static delete(database) {
-        return SQLiteStorage.deleteDatabase(database);
+        return SQLiteStorage.deleteDatabase(database)
+            .then(res => ({ res }))
+            .catch(err => ({ err }));
     }
 
     constructor(databaseName, databaseVersion, databaseDisplayName, databaseSize) {
@@ -13,23 +15,22 @@ export default class SQLite {
         this.databaseVersion = databaseVersion;
         this.databaseDisplayName = databaseDisplayName;
         this.databaseSize = databaseSize;
-        this.successInfo = (name, absolutely) => {
+        this.successInfo = (text, absolutely) => {
             if (__DEV__) {
                 if (absolutely) {
-                    console.log(name);
+                    console.log(text);
                 } else {
-                    console.log(`SQLiteStorage ${name} success.`);
+                    console.log(`SQLiteHelper ${text} success.`);
                 }
             }
         };
-        this.errorInfo = (name, err, absolutely) => {
+        this.errorInfo = (text, err, absolutely) => {
             if (__DEV__) {
                 if (absolutely) {
-                    console.error(name);
+                    console.log(text);
                 } else {
-                    console.error(`SQLiteStorage ${name} error.`);
+                    console.log(`SQLiteHelper ${text} error: ${err.message}`);
                 }
-                console.log(err);
             }
         };
         this.open = this._open.bind(this);
@@ -47,7 +48,8 @@ export default class SQLite {
             this.databaseName,
             this.databaseVersion,
             this.databaseDisplayName,
-            this.databaseSize)
+            this.databaseSize,
+        )
             .then((db) => {
                 this.successInfo('open');
                 return { res: db };
@@ -64,7 +66,7 @@ export default class SQLite {
 
     async _close() {
         if (this.db) {
-            return await this.db.close()
+            const result = await this.db.close()
                 .then(() => {
                     this.successInfo('close');
                     return { res: ['database was closed'] };
@@ -73,10 +75,11 @@ export default class SQLite {
                     this.errorInfo('close', err);
                     return { err };
                 });
-        } else {
-            this.successInfo('SQLiteStorage not open', true);
+            this.db = null;
+            return result;
         }
-        this.db = null;
+        this.successInfo('SQLiteStorage haven not opened', true);
+        return true;
     }
 
     async _createTable(tableInfo) {
@@ -89,7 +92,7 @@ export default class SQLite {
             `${sqlSegment} ${field.columnName} ${field.dataType} ${index + 1 === arr.length ? ');' : ','}`
         ), `CREATE TABLE IF NOT EXISTS ${tableName}(`);
         // 创建表
-        return await this.db.executeSql(sqlStr)
+        const result = await this.db.executeSql(sqlStr)
             .then((res) => {
                 this.successInfo('createTable');
                 return { res };
@@ -98,6 +101,8 @@ export default class SQLite {
                 this.errorInfo('createTable', err);
                 return { err };
             });
+        await this.close();
+        return result;
     }
 
     async _dropTable(tableName) {
@@ -105,7 +110,7 @@ export default class SQLite {
             await this.open();
         }
         // 删除表
-        return await this.db.executeSql(`DROP TABLE ${tableName};`)
+        const result = await this.db.executeSql(`DROP TABLE ${tableName};`)
             .then((res) => {
                 this.successInfo('dropTable');
                 return { res };
@@ -114,6 +119,8 @@ export default class SQLite {
                 this.errorInfo('dropTable', err);
                 return { err };
             });
+        await this.close();
+        return result;
     }
 
     async _insertItems(tableName, items) {
@@ -130,7 +137,7 @@ export default class SQLite {
             ), ' VALUES (');
             return sqlStr;
         });
-        return await this.db.sqlBatch(sqlStrArr)
+        const result = await this.db.sqlBatch(sqlStrArr)
             .then(() => {
                 this.successInfo('insertItemsBatch');
                 return { res: ['databases execute sqlBatch success'] };
@@ -139,6 +146,8 @@ export default class SQLite {
                 this.errorInfo('insertItemsBatch', err);
                 return { err };
             });
+        await this.close();
+        return result;
     }
 
     async _deleteItem(tableName, condition) {
@@ -154,7 +163,7 @@ export default class SQLite {
         } else {
             sqlStr = `DELETE FROM ${tableName}`;
         }
-        return await this.db.executeSql(sqlStr)
+        const result = await this.db.executeSql(sqlStr)
             .then((res) => {
                 this.successInfo(`SQLiteStorage deleteItem success: 影响 ${res[0].rowsAffected} 行`, true);
                 return { res };
@@ -163,6 +172,8 @@ export default class SQLite {
                 this.errorInfo('deleteItem', err);
                 return { err };
             });
+        await this.close();
+        return result;
     }
 
     async _updateItem(tableName, item, condition) {
@@ -178,7 +189,7 @@ export default class SQLite {
         sqlStr += conditionKeys.reduce((sqlSegment, conditionKey, index, arr) => (
             `${sqlSegment} ${conditionKey}='${condition[conditionKey]}' ${index + 1 !== arr.length ? 'AND' : ';'}`
         ), ' WHERE');
-        return await this.db.executeSql(sqlStr)
+        const result = await this.db.executeSql(sqlStr)
             .then((res) => {
                 this.successInfo(`SQLiteStorage updateItem success: 影响 ${res[0].rowsAffected} 行`, true);
                 return { res };
@@ -187,10 +198,12 @@ export default class SQLite {
                 this.errorInfo('updateItem', err);
                 return { err };
             });
+        await this.close();
+        return result;
     }
 
     async _selectItems(tableName, columns, condition, pagination, perPageNum) {
-        if (this.db) {
+        if (!this.db) {
             await this.open();
         }
         let sqlStr;
@@ -223,7 +236,7 @@ export default class SQLite {
         } else {
             sqlStr += ';';
         }
-        return await this.db.executeSql(sqlStr)
+        const result = await this.db.executeSql(sqlStr)
             .then((res) => {
                 const queryResult = [];
                 this.successInfo(`SQLiteStorage selectItems success: 查询到 ${res[0].rows.length} 行`, true);
@@ -237,5 +250,7 @@ export default class SQLite {
                 this.errorInfo('selectItems', err);
                 return { err };
             });
+        await this.close();
+        return result;
     }
 }

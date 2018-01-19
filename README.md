@@ -19,9 +19,9 @@ Features:
 
 **1.instantiation | 实例化**
 
-`import SQLite from 'react-native-sqlite-helper';`
+`import SQLiteHelper from 'react-native-sqlite-helper';`
 
-`const sqLite = new SQLite(`
+`const sqLiteHelper = new SQLiteHelper(`
 
 `databaseName:string,`
 
@@ -33,39 +33,39 @@ Features:
 
 **2.open database | 连接 database**
 
-`sqLite.open();`
+`sqLiteHelper.open(); // 会返回原始的SQLite实例，可以直接执行sql`
 
 **3.close database | 关闭 database**
 
-`sqLite.close();`
+`sqLiteHelper.close();`
 
 **4.delete database(static) | 删除 database（静态方法）**
 
-`SQLite.delete(database:string) => Promise;`
+`SQLiteHelper.delete(database:string);`
 
 **5.creteTable | 创建表**
 
-`sqLite.createTable(tableInfo:object);`
+`sqLiteHelper.createTable(tableInfo:object);`
 
 **6.dropTable | 删除表**
 
-`sqLite.dropTable(tableName:string);`
+`sqLiteHelper.dropTable(tableName:string);`
 
 **7.insertItems | 插入数据（支持多条）**
 
-`sqLite.insertItems(tableName:string,items:Array<object>);`
+`sqLiteHelper.insertItems(tableName:string,items:Array<object>);`
 
 **8.deleteItem | 删除数据**
 
-`sqLite.deleteItem(tableName:string,condition:object);`
+`sqLiteHelper.deleteItem(tableName:string,condition:object);`
 
 **9.updateItem | 更新数据**
 
-`sqLite.updateItem(tableName:string,item:object,condition:object);`
+`sqLiteHelper.updateItem(tableName:string,item:object,condition:object);`
 
 **10.selectItems | 查询数据**
 
-`sqLite.selectItems(`
+`sqLiteHelper.selectItems(`
 
 `tableName:string,`
 
@@ -90,18 +90,18 @@ Features:
  // use es6 async/await
 
  async _handleSQLite() {
-        const sqLite = new SQLite('test.db', '1.0', 'users', 2000);
+        const sqLiteHelper = new SQLiteHelper('test.db', '1.0', 'users', 2000);
         // 开启数据库
-        const { res: db, err: err1 } = await sqLite.open();
-        console.log(db, err1);
-        // 删除db
-        const { res: res2, err: err2 } = await SQLite.delete('test.db').then(res => ({ res })).catch(err => ({ err }));
+        const { res: sqLite, err: err1 } = await sqLiteHelper.open();
+        console.log(sqLite, err1);
+        // 删除db：静态方法
+        const { res: res2, err: err2 } = await SQLiteHelper.delete('test.db');
         console.log(res2, err2);
         // 关闭数据库
-        const { res: res3, err: err3 } = await sqLite.close();
+        const { res: res3, err: err3 } = await sqLiteHelper.close();
         console.log(res3, err3);
         // 建表
-        const { res: res4, err: err4 } = await sqLite.createTable({
+        const { res: res4, err: err4 } = await sqLiteHelper.createTable({
             tableName: 'people',
             tableFields: [
                 {
@@ -122,7 +122,7 @@ Features:
         });
         console.log(res4, err4);
         // 删除表
-        const { res: res5, err: err5 } = await sqLite.dropTable('people');
+        const { res: res5, err: err5 } = await sqLiteHelper.dropTable('people');
         console.log(res5, err5);
         // 插入数据
         const userData = [
@@ -137,19 +137,19 @@ Features:
                 sex: '女',
             },
         ];
-        const { res: res6, err: err6 } = await sqLite.insertItems('people', userData);
+        const { res: res6, err: err6 } = await sqLiteHelper.insertItems('people', userData);
         console.log(res6, err6);
         // 删除数据
-        const { res: res7, err: err7 } = await sqLite.deleteItem('people', { name: 'zhanggl' });
+        const { res: res7, err: err7 } = await sqLiteHelper.deleteItem('people', { name: 'zhanggl' });
         console.log(res7);
         // 更改数据
-        const { res: res8, err: err8 } = await sqLite.updateItem('people', { name: 'zhangqi' }, { name: 'zhangqi1', age: '22' });
+        const { res: res8, err: err8 } = await sqLiteHelper.updateItem('people', { name: 'zhangqi' }, { name: 'zhangqi1', age: '22' });
         console.log(res8);
         // 查询数据：第一页，每页5条数据
-        const { res: res9, err: err9 } = await sqLite.selectItems('people', '*', null, 1, 5);
+        const { res: res9, err: err9 } = await sqLiteHelper.selectItems('people', '*', null, 1, 5);
         console.log(res9);
         // 查询所有
-        const { res: res10, err: err10} = await sqLite.selectItems('people', '*', null);
+        const { res: res10, err: err10} = await sqLiteHelper.selectItems('people', '*', null);
         console.log(res10);
     }
 ```

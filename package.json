@@ -1,6 +1,6 @@
 {
   "name": "react-native-sqlite-helper",
-  "version": "1.0.5",
+  "version": "1.0.7",
   "description": "react-native-sqlite-helper is based on andpor/react-native-sqlite-storage",
   "main": "sqliteHelper.js",
   "scripts": {
@@ -24,6 +24,13 @@
   },
   "homepage": "https://github.com/longlongago2/react-native-sqlite-helper#readme",
   "dependencies": {
+    "eslint-plugin-jsx-a11y": "^6.0.3",
     "react-native-sqlite-storage": "^3.3.3"
+  },
+  "devDependencies": {
+    "eslint": "^4.15.0",
+    "eslint-config-airbnb": "^16.1.0",
+    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-react": "^7.5.1"
   }
 }

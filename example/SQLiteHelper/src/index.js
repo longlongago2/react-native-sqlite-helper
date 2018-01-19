@@ -1,8 +1,9 @@
 import React, { PureComponent } from 'react';
 import { View, Text, Button, ScrollView, TextInput } from 'react-native';
-import SQLite from 'react-native-sqlite-helper';
+import SQLiteHelper from 'react-native-sqlite-helper';
 
-const sqLite = new SQLite('test.db', '1.0', 'users', 2000);
+// TODO: SQLiteHelper的实例不用手动打开关闭（在内部实现了），而直接使用SQLite实例执行sql，需要手动打开和关闭
+const sqLiteHelper = new SQLiteHelper('test.db', '1.0', 'users', 2000);
 
 class Index extends PureComponent {
     constructor(props) {
@@ -26,42 +27,41 @@ class Index extends PureComponent {
     _handleConsoleLog(res, err, successInfo, errorInfo) {
         res && this.setState((prevState) => {
             const { consoleText } = prevState;
-            return { consoleText: consoleText + `${successInfo}\n` };
+            return { consoleText: `${consoleText}\n${successInfo}` };
         }, () => this.consolePanel.scrollToEnd({ animated: true }));
         err && this.setState((prevState) => {
             const { consoleText } = prevState;
-            return { consoleText: consoleText + `${errorInfo}\n` };
+            return { consoleText: `${consoleText}\n${errorInfo}` };
         }, () => this.consolePanel.scrollToEnd({ animated: true }));
     }
 
     async _handleOpen() {
         // 开启数据库
-        const { res, err } = await sqLite.open();
+        const { res, err } = await sqLiteHelper.open();
         if (res) {
-            this.db = res;
+            this.sqLite = res;   // todo: res是SQLite的实例，可以直接执行sql
         }
         this.handleConsoleLog(res, err, 'database已经打开！', 'database打开失败！');
     }
 
     async _handleClose() {
         // 关闭数据库连接
-        const { res, err } = await sqLite.close();
+        const { res, err } = await sqLiteHelper.close();
         if (res) {
-            this.db = null;
+            this.sqLite = null;
         }
         this.handleConsoleLog(res, err, 'database已经关闭！', 'database关闭失败！');
     }
 
     async _handleDelete() {
         // 删除db
-        const { res, err } = await SQLite.delete('test.db').then(res => ({ res })).catch(err => ({ err }));
+        const { res, err } = await SQLiteHelper.delete('test.db');
         this.handleConsoleLog(res, err, 'database已删除！', 'database删除失败！');
     }
 
     async _handleCreateTable() {
         // 建表
-        if (!this.db) return;
-        const { res, err } = await sqLite.createTable({
+        const { res, err } = await sqLiteHelper.createTable({
             tableName: 'people',
             tableFields: [
                 {
@@ -85,14 +85,12 @@ class Index extends PureComponent {
 
     async _handleDropTable() {
         // 删除表
-        if (!this.db) return;
-        const { res, err } = await sqLite.dropTable('people');
+        const { res, err } = await sqLiteHelper.dropTable('people');
         this.handleConsoleLog(res, err, 'people表已删除！', 'people表删除失败！');
     }
 
     async _handleInsertItems() {
         // 模拟插入数据
-        if (!this.db) return;
         const userData = [
             {
                 name: '张广龙',
@@ -106,56 +104,61 @@ class Index extends PureComponent {
             },
         ];
         // 插入数据
-        const { res, err } = await sqLite.insertItems('people', userData);
+        const { res, err } = await sqLiteHelper.insertItems('people', userData);
         this.handleConsoleLog(res, err, '插入2条数据！', '插入数据失败！');
     }
 
     async _handleUpdateItem() {
         // 更改数据
-        if (!this.db) return;
-        const { res, err } = await sqLite.updateItem('people', { name: '张琦1' }, { name: '张琦', age: '22' });
+        const { res, err } = await sqLiteHelper.updateItem('people', { name: '张琦1' }, { name: '张琦', age: '22' });
         this.handleConsoleLog(res, err, '更改数据成功！', '更改数据失败！');
     }
 
     async _handleSelectItems() {
         // 查询数据
-        if (!this.db) return;
-        const { res, err } = await sqLite.selectItems('people', '*', null);
+        const { res, err } = await sqLiteHelper.selectItems('people', '*');
+        if (!Array.isArray(res)) return;
         let consoleText = `本次供查询到${res.length}条数据\n`;
-        consoleText += res.length > 0 && res.map((item) => (
-            `${item.id}、姓名：${item.name}|年龄：${item.age}|性别：${item.sex}`
+        consoleText += res.length > 0 && res.map(item => (
+            `${item.id}、姓名：${item.name}|年龄：${item.age}|性别：${item.sex}\n`
         ));
         this.handleConsoleLog(res, err, consoleText.toString().replace(/,/g, '\n'), '查询数据失败');
     }
 
     async _handleExecuteSQL(sqlStr) {
-        let result = {};
+        if (!this.sqLite) await this.handleOpen();   // todo: 使用原始的SQLite类执行sql，需要手动打开
         // 对于复杂sql语句，参数化的执行sql方法并不支持，可以直接使用executeSql
-        await this.db.executeSql(sqlStr)
-            .then((res) => {
-                result = { res };
-            })
-            .catch((err) => {
-                result = { err };
-            });
+        const result = await this.sqLite.executeSql(sqlStr)
+            .then(res => ({ res }))
+            .catch(err => ({ err }));
         const { res, err } = result;
         let consoleText = `正在执行sql语句：${sqlStr}\n`;
-        consoleText += `执行结果：${JSON.stringify(res)}\n`;
+        consoleText += `执行结果：\n查询到${res[0].rows.length}行\n影响了${res[0].rowsAffected}行\n`;
         const queryResult = [];
-        const len = res[0].rows.length;
-        for (let i = 0; i < len; i++) {
-            queryResult.push(res[0].rows.item(i));
+        if (res[0].rows.length > 0) {
+            const len = res[0].rows.length;
+            for (let i = 0; i < len; i++) {
+                queryResult.push(res[0].rows.item(i));
+            }
+            consoleText += queryResult.length > 0 && queryResult.map(item => (
+                `${item.id}、姓名：${item.name}|年龄：${item.age}|性别：${item.sex}\n`
+            )).toString().replace(/,/g, '\n');
         }
-        consoleText += queryResult.length > 0 && queryResult.map((item) => (
-            `${item.id}、姓名：${item.name}|年龄：${item.age}|性别：${item.sex}\n`
-        ));
         this.handleConsoleLog(res, err, consoleText, '执行sql语句失败！');
+        await this.handleClose();                      // todo: 需要手动关闭
     }
 
     render() {
         return (
             <View style={{ flex: 1, padding: 5, margin: 0 }}>
-                <View style={{ flex: -1, height: 135, flexDirection: 'row', flexWrap: 'wrap' }}>
+                <View
+                    style={{
+                        flex: -1,
+                        height: 135,
+                        flexDirection: 'row',
+                        flexWrap: 'wrap',
+                    }}
+                >
                     <View style={{ width: 100, margin: 5 }}>
                         <Button title="打开数据库" onPress={this.handleOpen} />
                     </View>
@@ -189,9 +192,15 @@ class Index extends PureComponent {
                     }}
                 >
                     <View style={{ width: 100, margin: 5 }}>
-                        <Button title="执行sql" onPress={() => this.handleExecuteSQL(this.state.sqlStr)} />
+                        <Button
+                            title="执行sql"
+                            onPress={() => this.handleExecuteSQL(this.state.sqlStr)}
+                        />
                     </View>
-                    <TextInput style={{ flex: 1 }} onChangeText={(text) => this.setState({ sqlStr: text })} />
+                    <TextInput
+                        style={{ flex: 1 }}
+                        onChangeText={text => this.setState({ sqlStr: text })}
+                    />
                 </View>
                 <View
                     style={{
@@ -207,7 +216,8 @@ class Index extends PureComponent {
                 <ScrollView
                     ref={(ref) => {
                         this.consolePanel = ref;
-                    }}>
+                    }}
+                >
                     <Text>{this.state.consoleText}</Text>
                 </ScrollView>
             </View>
