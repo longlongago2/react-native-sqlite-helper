@@ -34,7 +34,7 @@ export default class SQLite {
     dropTable: (tableName: string) => Result;
     insertItems: (tableName: string, items: object[]) => Result;
     deleteItem: (tableName: string, condition?: object) => Result;
-    updateItem: (tableName: string, item: object, condition: object) => Result;
+    updateItem: (tableName: string, item: object, condition?: object) => Result;
     selectItems: (tableName: string,
                   columns: string[] | '*',
                   condition: object | null,

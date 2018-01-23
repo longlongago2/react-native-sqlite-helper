@@ -185,10 +185,12 @@ export default class SQLite {
         sqlStr = columns.reduce((sqlSegment, columnName, index, arr) => (
             `${sqlSegment} ${columnName}='${item[columnName]}' ${index + 1 !== arr.length ? ',' : ''}`
         ), `UPDATE ${tableName} SET`);
-        const conditionKeys = Object.keys(condition);
-        sqlStr += conditionKeys.reduce((sqlSegment, conditionKey, index, arr) => (
-            `${sqlSegment} ${conditionKey}='${condition[conditionKey]}' ${index + 1 !== arr.length ? 'AND' : ';'}`
-        ), ' WHERE');
+        if (condition && condition !== {} && typeof condition === 'object') {
+            const conditionKeys = Object.keys(condition);
+            sqlStr += conditionKeys.reduce((sqlSegment, conditionKey, index, arr) => (
+                `${sqlSegment} ${conditionKey}='${condition[conditionKey]}' ${index + 1 !== arr.length ? 'AND' : ';'}`
+            ), ' WHERE');
+        } else sqlStr += ';';
         const result = await this.db.executeSql(sqlStr)
             .then((res) => {
                 this.successInfo(`SQLiteStorage updateItem success: 影响 ${res[0].rowsAffected} 行`, true);
