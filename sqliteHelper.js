@@ -92,7 +92,7 @@ export default class SQLite {
             `${sqlSegment} ${field.columnName} ${field.dataType} ${index + 1 === arr.length ? ');' : ','}`
         ), `CREATE TABLE IF NOT EXISTS ${tableName}(`);
         // 创建表
-        const result = await this.db.executeSql(sqlStr)
+        return await this.db.executeSql(sqlStr)
             .then((res) => {
                 this.successInfo('createTable');
                 return { res };
@@ -101,8 +101,6 @@ export default class SQLite {
                 this.errorInfo('createTable', err);
                 return { err };
             });
-        await this.close();
-        return result;
     }
 
     async _dropTable(tableName) {
@@ -110,7 +108,7 @@ export default class SQLite {
             await this.open();
         }
         // 删除表
-        const result = await this.db.executeSql(`DROP TABLE ${tableName};`)
+        return await this.db.executeSql(`DROP TABLE ${tableName};`)
             .then((res) => {
                 this.successInfo('dropTable');
                 return { res };
@@ -119,8 +117,6 @@ export default class SQLite {
                 this.errorInfo('dropTable', err);
                 return { err };
             });
-        await this.close();
-        return result;
     }
 
     async _insertItems(tableName, items) {
@@ -137,7 +133,7 @@ export default class SQLite {
             ), ' VALUES (');
             return sqlStr;
         });
-        const result = await this.db.sqlBatch(sqlStrArr)
+        return await this.db.sqlBatch(sqlStrArr)
             .then(() => {
                 this.successInfo('insertItemsBatch');
                 return { res: ['databases execute sqlBatch success'] };
@@ -146,8 +142,6 @@ export default class SQLite {
                 this.errorInfo('insertItemsBatch', err);
                 return { err };
             });
-        await this.close();
-        return result;
     }
 
     async _deleteItem(tableName, condition) {
@@ -163,7 +157,7 @@ export default class SQLite {
         } else {
             sqlStr = `DELETE FROM ${tableName}`;
         }
-        const result = await this.db.executeSql(sqlStr)
+        return await this.db.executeSql(sqlStr)
             .then((res) => {
                 this.successInfo(`SQLiteStorage deleteItem success: 影响 ${res[0].rowsAffected} 行`, true);
                 return { res };
@@ -172,8 +166,6 @@ export default class SQLite {
                 this.errorInfo('deleteItem', err);
                 return { err };
             });
-        await this.close();
-        return result;
     }
 
     async _updateItem(tableName, item, condition) {
@@ -191,7 +183,7 @@ export default class SQLite {
                 `${sqlSegment} ${conditionKey}='${condition[conditionKey]}' ${index + 1 !== arr.length ? 'AND' : ';'}`
             ), ' WHERE');
         } else sqlStr += ';';
-        const result = await this.db.executeSql(sqlStr)
+        return await this.db.executeSql(sqlStr)
             .then((res) => {
                 this.successInfo(`SQLiteStorage updateItem success: 影响 ${res[0].rowsAffected} 行`, true);
                 return { res };
@@ -200,8 +192,6 @@ export default class SQLite {
                 this.errorInfo('updateItem', err);
                 return { err };
             });
-        await this.close();
-        return result;
     }
 
     async _selectItems(tableName, columns, condition, pagination, perPageNum) {
@@ -238,7 +228,7 @@ export default class SQLite {
         } else {
             sqlStr += ';';
         }
-        const result = await this.db.executeSql(sqlStr)
+        return await this.db.executeSql(sqlStr)
             .then((res) => {
                 const queryResult = [];
                 this.successInfo(`SQLiteStorage selectItems success: 查询到 ${res[0].rows.length} 行`, true);
@@ -252,7 +242,5 @@ export default class SQLite {
                 this.errorInfo('selectItems', err);
                 return { err };
             });
-        await this.close();
-        return result;
     }
 }

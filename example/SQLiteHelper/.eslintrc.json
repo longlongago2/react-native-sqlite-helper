@@ -48,7 +48,8 @@
       "error",
       4
     ],
-    "no-unused-expressions": "off"
+    "no-unused-expressions": "off",
+    "no-return-await": "off"
   },
   "globals": {
     "__DEV__": true

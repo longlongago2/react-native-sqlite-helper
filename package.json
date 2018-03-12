@@ -1,6 +1,6 @@
 {
   "name": "react-native-sqlite-helper",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "react-native-sqlite-helper is based on andpor/react-native-sqlite-storage",
   "main": "sqliteHelper.js",
   "scripts": {
