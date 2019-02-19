@@ -8,5 +8,8 @@
 out
 gen
 
+# vscode
+.vscode
+
 #example
 example

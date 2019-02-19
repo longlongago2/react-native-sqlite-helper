@@ -83,164 +83,188 @@ export default class SQLite {
     }
 
     async _createTable(tableInfo) {
-        const { tableName, tableFields } = tableInfo;
-        if (!this.db) {
-            await this.open();
+        try {
+            const { tableName, tableFields } = tableInfo;
+            if (!this.db) {
+                await this.open();
+            }
+            // sql语句累加
+            const sqlStr = tableFields.reduce((sqlSegment, field, index, arr) => (
+                `${sqlSegment} ${field.columnName} ${field.dataType} ${index + 1 === arr.length ? ');' : ','}`
+            ), `CREATE TABLE IF NOT EXISTS ${tableName}(`);
+            // 创建表
+            return await this.db.executeSql(sqlStr)
+                .then((res) => {
+                    this.successInfo('createTable');
+                    return { res };
+                })
+                .catch((err) => {
+                    this.errorInfo('createTable', err);
+                    return { err };
+                });
+        } catch (err) { 
+            return { err };
         }
-        // sql语句累加
-        const sqlStr = tableFields.reduce((sqlSegment, field, index, arr) => (
-            `${sqlSegment} ${field.columnName} ${field.dataType} ${index + 1 === arr.length ? ');' : ','}`
-        ), `CREATE TABLE IF NOT EXISTS ${tableName}(`);
-        // 创建表
-        return await this.db.executeSql(sqlStr)
-            .then((res) => {
-                this.successInfo('createTable');
-                return { res };
-            })
-            .catch((err) => {
-                this.errorInfo('createTable', err);
-                return { err };
-            });
     }
 
     async _dropTable(tableName) {
-        if (!this.db) {
-            await this.open();
+        try {
+            if (!this.db) {
+                await this.open();
+            }
+            // 删除表
+            return await this.db.executeSql(`DROP TABLE ${tableName};`)
+                .then((res) => {
+                    this.successInfo('dropTable');
+                    return { res };
+                })
+                .catch((err) => {
+                    this.errorInfo('dropTable', err);
+                    return { err };
+                });
+        } catch (err) {
+            return { err };
         }
-        // 删除表
-        return await this.db.executeSql(`DROP TABLE ${tableName};`)
-            .then((res) => {
-                this.successInfo('dropTable');
-                return { res };
-            })
-            .catch((err) => {
-                this.errorInfo('dropTable', err);
-                return { err };
-            });
     }
 
     async _insertItems(tableName, items) {
-        if (!this.db) {
-            await this.open();
-        }
-        const sqlStrArr = items.map((item) => {
-            const columns = Object.keys(item);
-            let sqlStr = columns.reduce((sqlSegment, columnName, index, arr) => (
-                `${sqlSegment} ${columnName} ${index + 1 === arr.length ? ')' : ','}`
-            ), `INSERT INTO ${tableName} (`);
-            sqlStr += columns.reduce((sqlSegment, columnName, index, arr) => (
-                `${sqlSegment} '${item[columnName]}' ${index + 1 === arr.length ? ');' : ','}`
-            ), ' VALUES (');
-            return sqlStr;
-        });
-        return await this.db.sqlBatch(sqlStrArr)
-            .then(() => {
-                this.successInfo('insertItemsBatch');
-                return { res: ['databases execute sqlBatch success'] };
-            })
-            .catch((err) => {
-                this.errorInfo('insertItemsBatch', err);
-                return { err };
+        try {
+            if (!this.db) {
+                await this.open();
+            }
+            const sqlStrArr = items.map((item) => {
+                const columns = Object.keys(item);
+                let sqlStr = columns.reduce((sqlSegment, columnName, index, arr) => (
+                    `${sqlSegment} ${columnName} ${index + 1 === arr.length ? ')' : ','}`
+                ), `INSERT INTO ${tableName} (`);
+                sqlStr += columns.reduce((sqlSegment, columnName, index, arr) => (
+                    `${sqlSegment} '${item[columnName]}' ${index + 1 === arr.length ? ');' : ','}`
+                ), ' VALUES (');
+                return sqlStr;
             });
+            return await this.db.sqlBatch(sqlStrArr)
+                .then(() => {
+                    this.successInfo('insertItemsBatch');
+                    return { res: ['databases execute sqlBatch success'] };
+                })
+                .catch((err) => {
+                    this.errorInfo('insertItemsBatch', err);
+                    return { err };
+                });
+        } catch (err) {
+            return { err };
+        }
     }
 
     async _deleteItem(tableName, condition) {
-        if (!this.db) {
-            await this.open();
+        try {
+            if (!this.db) {
+                await this.open();
+            }
+            let sqlStr;
+            if (condition && typeof condition === 'object' && condition !== {}) {
+                const conditionKeys = Object.keys(condition);
+                sqlStr = conditionKeys.reduce((sqlSegment, conditionKey, index, arr) => (
+                    `${sqlSegment} ${conditionKey}='${condition[conditionKey]}' ${index + 1 !== arr.length ? 'and' : ';'}`
+                ), `DELETE FROM ${tableName} WHERE`);
+            } else {
+                sqlStr = `DELETE FROM ${tableName}`;
+            }
+            return await this.db.executeSql(sqlStr)
+                .then((res) => {
+                    this.successInfo(`SQLiteStorage deleteItem success: 影响 ${res[0].rowsAffected} 行`, true);
+                    return { res };
+                })
+                .catch((err) => {
+                    this.errorInfo('deleteItem', err);
+                    return { err };
+                });
+        } catch(err) {
+            return { err };
         }
-        let sqlStr;
-        if (condition && typeof condition === 'object' && condition !== {}) {
-            const conditionKeys = Object.keys(condition);
-            sqlStr = conditionKeys.reduce((sqlSegment, conditionKey, index, arr) => (
-                `${sqlSegment} ${conditionKey}='${condition[conditionKey]}' ${index + 1 !== arr.length ? 'and' : ';'}`
-            ), `DELETE FROM ${tableName} WHERE`);
-        } else {
-            sqlStr = `DELETE FROM ${tableName}`;
-        }
-        return await this.db.executeSql(sqlStr)
-            .then((res) => {
-                this.successInfo(`SQLiteStorage deleteItem success: 影响 ${res[0].rowsAffected} 行`, true);
-                return { res };
-            })
-            .catch((err) => {
-                this.errorInfo('deleteItem', err);
-                return { err };
-            });
     }
 
     async _updateItem(tableName, item, condition) {
-        if (!this.db) {
-            await this.open();
-        }
-        const columns = Object.keys(item);
-        let sqlStr;
-        sqlStr = columns.reduce((sqlSegment, columnName, index, arr) => (
-            `${sqlSegment} ${columnName}='${item[columnName]}' ${index + 1 !== arr.length ? ',' : ''}`
-        ), `UPDATE ${tableName} SET`);
-        if (condition && condition !== {} && typeof condition === 'object') {
-            const conditionKeys = Object.keys(condition);
-            sqlStr += conditionKeys.reduce((sqlSegment, conditionKey, index, arr) => (
-                `${sqlSegment} ${conditionKey}='${condition[conditionKey]}' ${index + 1 !== arr.length ? 'AND' : ';'}`
-            ), ' WHERE');
-        } else sqlStr += ';';
-        return await this.db.executeSql(sqlStr)
-            .then((res) => {
-                this.successInfo(`SQLiteStorage updateItem success: 影响 ${res[0].rowsAffected} 行`, true);
-                return { res };
-            })
-            .catch((err) => {
-                this.errorInfo('updateItem', err);
-                return { err };
-            });
-    }
-
-    async _selectItems(tableName, columns, condition, pagination, perPageNum) {
-        if (!this.db) {
-            await this.open();
-        }
-        let sqlStr;
-        if (columns === '*') {
-            if (condition && condition !== {} && typeof condition === 'object') {
-                const conditionKeys = Object.keys(condition);
-                sqlStr = conditionKeys.reduce((sqlSegment, conditionKey, index, arr) => (
-                    `${sqlSegment} ${conditionKey}='${condition[conditionKey]}' ${index + 1 !== arr.length ? 'AND' : ''}`
-                ), `SELECT * FROM ${tableName} WHERE`);
-            } else {
-                sqlStr = `SELECT * FROM ${tableName}`;
+        try {
+            if (!this.db) {
+                await this.open();
             }
-        } else {
-            sqlStr = columns.reduce((sqlSegment, column, index, arr) => (
-                `${sqlSegment} ${column} ${index + 1 !== arr.length ? ',' : ''}`
-            ), 'SELECT');
+            const columns = Object.keys(item);
+            let sqlStr;
+            sqlStr = columns.reduce((sqlSegment, columnName, index, arr) => (
+                `${sqlSegment} ${columnName}='${item[columnName]}' ${index + 1 !== arr.length ? ',' : ''}`
+            ), `UPDATE ${tableName} SET`);
             if (condition && condition !== {} && typeof condition === 'object') {
                 const conditionKeys = Object.keys(condition);
                 sqlStr += conditionKeys.reduce((sqlSegment, conditionKey, index, arr) => (
-                    `${sqlSegment} ${conditionKey}='${condition[conditionKey]}' ${index + 1 !== arr.length ? 'AND' : ''}`
-                ), ` FROM ${tableName} WHERE`);
-            } else {
-                sqlStr += ` FROM ${tableName}`;
+                    `${sqlSegment} ${conditionKey}='${condition[conditionKey]}' ${index + 1 !== arr.length ? 'AND' : ';'}`
+                ), ' WHERE');
+            } else sqlStr += ';';
+            return await this.db.executeSql(sqlStr)
+                .then((res) => {
+                    this.successInfo(`SQLiteStorage updateItem success: 影响 ${res[0].rowsAffected} 行`, true);
+                    return { res };
+                })
+                .catch((err) => {
+                    this.errorInfo('updateItem', err);
+                    return { err };
+                });
+        } catch(err) {
+            return { err };
+        }
+    }
+
+    async _selectItems(tableName, columns, condition, pagination, perPageNum) {
+        try {
+            if (!this.db) {
+                await this.open();
             }
-        }
-        if (pagination && perPageNum) {
-            const limit = pagination * perPageNum;
-            const offset = perPageNum * (pagination - 1) > 0 ? perPageNum * (pagination - 1) : 0;
-            sqlStr += ` limit ${limit} offset ${offset};`;
-        } else {
-            sqlStr += ';';
-        }
-        return await this.db.executeSql(sqlStr)
-            .then((res) => {
-                const queryResult = [];
-                this.successInfo(`SQLiteStorage selectItems success: 查询到 ${res[0].rows.length} 行`, true);
-                const len = res[0].rows.length;
-                for (let i = 0; i < len; i++) {
-                    queryResult.push(res[0].rows.item(i));
+            let sqlStr;
+            if (columns === '*') {
+                if (condition && condition !== {} && typeof condition === 'object') {
+                    const conditionKeys = Object.keys(condition);
+                    sqlStr = conditionKeys.reduce((sqlSegment, conditionKey, index, arr) => (
+                        `${sqlSegment} ${conditionKey}='${condition[conditionKey]}' ${index + 1 !== arr.length ? 'AND' : ''}`
+                    ), `SELECT * FROM ${tableName} WHERE`);
+                } else {
+                    sqlStr = `SELECT * FROM ${tableName}`;
                 }
-                return { res: queryResult };
-            })
-            .catch((err) => {
-                this.errorInfo('selectItems', err);
-                return { err };
-            });
+            } else {
+                sqlStr = columns.reduce((sqlSegment, column, index, arr) => (
+                    `${sqlSegment} ${column} ${index + 1 !== arr.length ? ',' : ''}`
+                ), 'SELECT');
+                if (condition && condition !== {} && typeof condition === 'object') {
+                    const conditionKeys = Object.keys(condition);
+                    sqlStr += conditionKeys.reduce((sqlSegment, conditionKey, index, arr) => (
+                        `${sqlSegment} ${conditionKey}='${condition[conditionKey]}' ${index + 1 !== arr.length ? 'AND' : ''}`
+                    ), ` FROM ${tableName} WHERE`);
+                } else {
+                    sqlStr += ` FROM ${tableName}`;
+                }
+            }
+            if (pagination && perPageNum) {
+                const limit = pagination * perPageNum;
+                const offset = perPageNum * (pagination - 1) > 0 ? perPageNum * (pagination - 1) : 0;
+                sqlStr += ` limit ${limit} offset ${offset};`;
+            } else {
+                sqlStr += ';';
+            }
+            return await this.db.executeSql(sqlStr)
+                .then((res) => {
+                    const queryResult = [];
+                    this.successInfo(`SQLiteStorage selectItems success: 查询到 ${res[0].rows.length} 行`, true);
+                    const len = res[0].rows.length;
+                    for (let i = 0; i < len; i++) {
+                        queryResult.push(res[0].rows.item(i));
+                    }
+                    return { res: queryResult };
+                })
+                .catch((err) => {
+                    this.errorInfo('selectItems', err);
+                    return { err };
+                });
+        } catch(err) {
+            return { err };
+        }
     }
 }
