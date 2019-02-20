@@ -1,6 +1,6 @@
-# Changelog | 变更列表
+# CHANGELOG
 
-### 1.1.0
+### v1.1.0 (2019/02/20)
 
 * 增加 try catch 错误抛出处理
 
