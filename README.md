@@ -153,3 +153,7 @@ Features:
         console.log(res10);
     }
 ```
+
+## Changelog | 变更记录
+
+[CHANGELOG](./CHANGELOG.md)
