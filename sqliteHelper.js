@@ -102,7 +102,7 @@ export default class SQLite {
                     this.errorInfo('createTable', err);
                     return { err };
                 });
-        } catch (err) { 
+        } catch (err) {
             return { err };
         }
     }
@@ -179,7 +179,7 @@ export default class SQLite {
                     this.errorInfo('deleteItem', err);
                     return { err };
                 });
-        } catch(err) {
+        } catch (err) {
             return { err };
         }
     }
@@ -209,7 +209,7 @@ export default class SQLite {
                     this.errorInfo('updateItem', err);
                     return { err };
                 });
-        } catch(err) {
+        } catch (err) {
             return { err };
         }
     }
@@ -263,7 +263,7 @@ export default class SQLite {
                     this.errorInfo('selectItems', err);
                     return { err };
                 });
-        } catch(err) {
+        } catch (err) {
             return { err };
         }
     }

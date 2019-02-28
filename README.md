@@ -2,7 +2,7 @@
 
 This repository is based on *[andpor/react-native-sqlite-storage](https://github.com/andpor/react-native-sqlite-storage)*, you should install and link react-native-sqlite-storage first.
 
-这个库是基于 *[andpor/react-native-sqlite-storage](https://github.com/andpor/react-native-sqlite-storage)* ，请先 install 和 link react-native-sqlite-storage
+这个库是基于 *[andpor/react-native-sqlite-storage](https://github.com/andpor/react-native-sqlite-storage)* ，请先 install 和 link react-native-sqlite-storage。
 
 Features:
 
@@ -33,7 +33,7 @@ Features:
 
 **2.open database | 连接 database**
 
-`sqLiteHelper.open(); // 会返回原始的SQLite实例，可以直接执行sql`
+`sqLiteHelper.open();`
 
 **3.close database | 关闭 database**
 
@@ -87,21 +87,27 @@ Features:
 ## example | 例子
 
 ```
- // use es6 async/await
+ // use async/await
 
  async _handleSQLite() {
         const sqLiteHelper = new SQLiteHelper('test.db', '1.0', 'users', 2000);
-        // open database
-        const { res: sqLite, err: err1 } = await sqLiteHelper.open();
-        console.log(sqLite, err1);
-        // delete db
-        const { res: res2, err: err2 } = await SQLiteHelper.delete('test.db');
-        console.log(res2, err2);
-        // close database
-        const { res: res3, err: err3 } = await sqLiteHelper.close();
-        console.log(res3, err3);
-        // create table
-        const { res: res4, err: err4 } = await sqLiteHelper.createTable({
+
+        // 1.open database
+        const { res: sqLite, err } = await sqLiteHelper.open();
+        // original sqLite Instance: execute sql
+        sqLite.executeSql('SELECT * FROM Employee');
+        ...
+
+        // 2.delete db
+        const { res, err } = await SQLiteHelper.delete('test.db');
+        ...
+
+        // 3.close database
+        const { res, err } = await sqLiteHelper.close();
+        ...
+
+        // 4.create table
+        const { res, err } = await sqLiteHelper.createTable({
             tableName: 'people',
             tableFields: [
                 {
@@ -120,11 +126,13 @@ Features:
                 },
             ],
         });
-        console.log(res4, err4);
-        // drop table
-        const { res: res5, err: err5 } = await sqLiteHelper.dropTable('people');
-        console.log(res5, err5);
-        // insert items
+        ...
+
+        // 5.drop table
+        const { res, err } = await sqLiteHelper.dropTable('people');
+        ...
+
+        // 6.insert items
         const userData = [
             {
                 name: '张三',
@@ -137,20 +145,24 @@ Features:
                 sex: '女',
             },
         ];
-        const { res: res6, err: err6 } = await sqLiteHelper.insertItems('people', userData);
-        console.log(res6, err6);
-        // delete item
-        const { res: res7, err: err7 } = await sqLiteHelper.deleteItem('people', { name: 'zhanggl' });
-        console.log(res7);
-        // update item
-        const { res: res8, err: err8 } = await sqLiteHelper.updateItem('people', { name: 'zhangqi' }, { name: 'zhangqi1', age: '22' });
-        console.log(res8);
-        // query: the first page, five items per page
-        const { res: res9, err: err9 } = await sqLiteHelper.selectItems('people', '*', null, 1, 5);
-        console.log(res9);
-        // query all
-        const { res: res10, err: err10} = await sqLiteHelper.selectItems('people', '*', null);
-        console.log(res10);
+        const { res, err } = await sqLiteHelper.insertItems('people', userData);
+        ...
+
+        // 7.delete item
+        const { res, err } = await sqLiteHelper.deleteItem('people', { name: 'zhanggl' });
+        ...
+
+        // 8.update item
+        const { res, err } = await sqLiteHelper.updateItem('people', { name: 'XiaoMing' }, { name: 'XiaoZhang', age: '22' });
+        ...
+
+        // 9.query: the first page, five items per page
+        const { res, err } = await sqLiteHelper.selectItems('people', '*', null, 1, 5);
+        ...
+
+        // 10.query all
+        const { res, err } = await sqLiteHelper.selectItems('people', '*', null);
+        ...
     }
 ```
 
