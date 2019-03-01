@@ -23,4 +23,18 @@ describe('Test instance method: open()', () => {
     });
 });
 
-// describe('Test static method: delete()', () => { });
+describe('Test static method: delete()', () => { 
+    test('sqliteHelper delete sqlite database success', () => { 
+        SQLiteHelper.delete = jest.fn(database => Promise.resolve(database)); // 模拟delete静态方法
+        SQLiteHelper.delete('test.db').then(({ res, err }) => { 
+            expect(res).toEqual('test.db');
+        })
+    });
+
+    test('sqliteHelper delete sqlite database failed', () => { 
+        SQLiteHelper.delete = jest.fn(database => Promise.reject(new Error('error'))); // 模拟delete静态方法
+        SQLiteHelper.delete('test.db').then(({ res, err }) => { 
+            expect(err.message).toEqual('error');
+        })
+    });
+});
