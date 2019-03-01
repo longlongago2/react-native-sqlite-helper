@@ -4,33 +4,42 @@
   "description": "react-native-sqlite-helper is based on andpor/react-native-sqlite-storage",
   "main": "sqliteHelper.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/longlongago2/react-native-sqlite-helper.git"
   },
   "keywords": [
-    "react",
-    "naitve",
+    "react-native",
+    "native",
     "sqlite",
     "helper",
     "react-native-sqlite-storage"
   ],
-  "author": "zhanggl",
+  "author": "longlongago2",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/longlongago2/react-native-sqlite-helper/issues"
   },
   "homepage": "https://github.com/longlongago2/react-native-sqlite-helper#readme",
   "dependencies": {
-    "eslint-plugin-jsx-a11y": "^6.0.3",
-    "react-native-sqlite-storage": "^3.3.3"
+    "react-native": "^0.58.5",
+    "react-native-sqlite-storage": "^3.3.9"
   },
   "devDependencies": {
-    "eslint": "^4.15.0",
+    "@babel/core": "^7.3.4",
+    "@babel/plugin-proposal-class-properties": "^7.3.4",
+    "@babel/preset-env": "^7.3.4",
+    "babel-jest": "^24.1.0",
+    "eslint": "^4.19.1",
     "eslint-config-airbnb": "^16.1.0",
-    "eslint-plugin-import": "^2.8.0",
-    "eslint-plugin-react": "^7.5.1"
+    "eslint-plugin-import": "^2.16.0",
+    "eslint-plugin-jsx-a11y": "^6.2.1",
+    "eslint-plugin-react": "^7.12.4",
+    "jest": "^24.1.0"
+  },
+  "jest": {
+    "preset": "react-native"
   }
 }
