@@ -121,7 +121,7 @@ Features:
                     dataType: 'varchar',
                 }, {
                     columnName: 'age',
-                    dataType: 'varchar',
+                    dataType: 'int',
                 }, {
                     columnName: 'sex',
                     dataType: 'varchar',
@@ -138,12 +138,12 @@ Features:
         const userData = [
             {
                 name: '张三',
-                age: '26',
+                age: 26,
                 sex: '男',
             },
             {
                 name: '李四',
-                age: '22',
+                age: 22,
                 sex: '女',
             },
         ];

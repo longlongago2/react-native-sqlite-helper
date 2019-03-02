@@ -67,9 +67,9 @@ export default class SQLite {
     async _close() {
         if (this.db) {
             const result = await this.db.close()
-                .then(() => {
+                .then((res) => {
                     this.successInfo('close');
-                    return { res: ['database was closed'] };
+                    return { res: res || ['success'] };
                 })
                 .catch((err) => {
                     this.errorInfo('close', err);
@@ -112,6 +112,7 @@ export default class SQLite {
             if (!this.db) {
                 await this.open();
             }
+            if (!tableName) throw new Error('Required parameter missing');
             // 删除表
             return await this.db.executeSql(`DROP TABLE ${tableName};`)
                 .then((res) => {
@@ -132,20 +133,23 @@ export default class SQLite {
             if (!this.db) {
                 await this.open();
             }
+            if (!tableName || !items) throw new Error('Required parameter missing');
+            if (typeof tableName !== 'string') throw new Error(`Parameter tableName expects string but ${typeof tableName}`);
+            if (!Array.isArray(items)) throw new Error(`Parameter items expects array but ${typeof items}`);
             const sqlStrArr = items.map((item) => {
                 const columns = Object.keys(item);
                 let sqlStr = columns.reduce((sqlSegment, columnName, index, arr) => (
                     `${sqlSegment} ${columnName} ${index + 1 === arr.length ? ')' : ','}`
                 ), `INSERT INTO ${tableName} (`);
                 sqlStr += columns.reduce((sqlSegment, columnName, index, arr) => (
-                    `${sqlSegment} '${item[columnName]}' ${index + 1 === arr.length ? ');' : ','}`
+                    `${sqlSegment} ${typeof item[columnName] !== 'number' ? `'${item[columnName]}'` : item[columnName]} ${index + 1 === arr.length ? ');' : ','}`
                 ), ' VALUES (');
                 return sqlStr;
             });
             return await this.db.sqlBatch(sqlStrArr)
-                .then(() => {
+                .then((res) => {
                     this.successInfo('insertItemsBatch');
-                    return { res: ['databases execute sqlBatch success'] };
+                    return { res: res || ['success'] };
                 })
                 .catch((err) => {
                     this.errorInfo('insertItemsBatch', err);
