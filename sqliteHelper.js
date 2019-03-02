@@ -4,8 +4,8 @@ SQLiteStorage.DEBUG(__DEV__);       // 启动调试信息
 SQLiteStorage.enablePromise(true);  // 使用 promise(true) 或者 callback(false)
 
 export default class SQLite {
-    static delete(database) {
-        return SQLiteStorage.deleteDatabase(database)
+    static async delete(database) {
+        return await SQLiteStorage.deleteDatabase(database)
             .then(res => ({ res }))
             .catch(err => ({ err }));
     }

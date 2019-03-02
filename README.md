@@ -89,6 +89,8 @@ Features:
 ```
  // use async/await
 
+ // The { res, err } in result can only have one value at a time, the other is undefined
+
  async _handleSQLite() {
         const sqLiteHelper = new SQLiteHelper('test.db', '1.0', 'users', 2000);
 
