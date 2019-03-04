@@ -165,14 +165,15 @@ export default class SQLite {
             if (!this.db) {
                 await this.open();
             }
+            if (!tableName) throw new Error('Required parameter missing');
             let sqlStr;
             if (condition && typeof condition === 'object' && condition !== {}) {
                 const conditionKeys = Object.keys(condition);
                 sqlStr = conditionKeys.reduce((sqlSegment, conditionKey, index, arr) => (
-                    `${sqlSegment} ${conditionKey}='${condition[conditionKey]}' ${index + 1 !== arr.length ? 'and' : ';'}`
+                    `${sqlSegment} ${conditionKey}=${typeof condition[conditionKey] !== 'number' ? `'${condition[conditionKey]}'` : condition[conditionKey]} ${index + 1 !== arr.length ? 'AND' : ';'}`
                 ), `DELETE FROM ${tableName} WHERE`);
             } else {
-                sqlStr = `DELETE FROM ${tableName}`;
+                sqlStr = `DELETE FROM ${tableName};`;
             }
             return await this.db.executeSql(sqlStr)
                 .then((res) => {
@@ -193,15 +194,22 @@ export default class SQLite {
             if (!this.db) {
                 await this.open();
             }
+            if (!tableName || !item) throw new Error('Required parameter missing');
+            if (typeof tableName !== 'string') {
+                throw new Error(`Parameter tableName expects string but ${typeof tableName}`);
+            }
+            if (Object.prototype.toString.call(item) !== '[object Object]') {
+                throw new Error(`Parameter item expects object but ${Object.prototype.toString.call(item)}`);
+            }
             const columns = Object.keys(item);
             let sqlStr;
             sqlStr = columns.reduce((sqlSegment, columnName, index, arr) => (
-                `${sqlSegment} ${columnName}='${item[columnName]}' ${index + 1 !== arr.length ? ',' : ''}`
+                `${sqlSegment} ${columnName}=${typeof item[columnName] !== 'number' ? `'${item[columnName]}'` : item[columnName]} ${index + 1 !== arr.length ? ',' : ''}`
             ), `UPDATE ${tableName} SET`);
             if (condition && condition !== {} && typeof condition === 'object') {
                 const conditionKeys = Object.keys(condition);
                 sqlStr += conditionKeys.reduce((sqlSegment, conditionKey, index, arr) => (
-                    `${sqlSegment} ${conditionKey}='${condition[conditionKey]}' ${index + 1 !== arr.length ? 'AND' : ';'}`
+                    `${sqlSegment} ${conditionKey}=${typeof condition[conditionKey] !== 'number' ? `'${condition[conditionKey]}'` : condition[conditionKey]} ${index + 1 !== arr.length ? 'AND' : ';'}`
                 ), ' WHERE');
             } else sqlStr += ';';
             return await this.db.executeSql(sqlStr)
@@ -223,12 +231,17 @@ export default class SQLite {
             if (!this.db) {
                 await this.open();
             }
+            if (!tableName || !columns) throw new Error('Required parameter missing');
+            if (typeof tableName !== 'string') throw new Error(`Parameter tableName expects string but ${typeof tableName}`);
+            if (!Array.isArray(columns) && columns !== '*') {
+                throw new Error(`Parameter columns expects Array or '*' but ${Object.prototype.toString.call(columns)}`);
+            }
             let sqlStr;
             if (columns === '*') {
                 if (condition && condition !== {} && typeof condition === 'object') {
                     const conditionKeys = Object.keys(condition);
                     sqlStr = conditionKeys.reduce((sqlSegment, conditionKey, index, arr) => (
-                        `${sqlSegment} ${conditionKey}='${condition[conditionKey]}' ${index + 1 !== arr.length ? 'AND' : ''}`
+                        `${sqlSegment} ${conditionKey}=${typeof condition[conditionKey] !== 'number' ? `'${condition[conditionKey]}'` : condition[conditionKey]} ${index + 1 !== arr.length ? 'AND' : ''}`
                     ), `SELECT * FROM ${tableName} WHERE`);
                 } else {
                     sqlStr = `SELECT * FROM ${tableName}`;
@@ -240,7 +253,7 @@ export default class SQLite {
                 if (condition && condition !== {} && typeof condition === 'object') {
                     const conditionKeys = Object.keys(condition);
                     sqlStr += conditionKeys.reduce((sqlSegment, conditionKey, index, arr) => (
-                        `${sqlSegment} ${conditionKey}='${condition[conditionKey]}' ${index + 1 !== arr.length ? 'AND' : ''}`
+                        `${sqlSegment} ${conditionKey}=${typeof condition[conditionKey] !== 'number' ? `'${condition[conditionKey]}'` : condition[conditionKey]} ${index + 1 !== arr.length ? 'AND' : ''}`
                     ), ` FROM ${tableName} WHERE`);
                 } else {
                     sqlStr += ` FROM ${tableName}`;
@@ -255,13 +268,16 @@ export default class SQLite {
             }
             return await this.db.executeSql(sqlStr)
                 .then((res) => {
-                    const queryResult = [];
-                    this.successInfo(`SQLiteStorage selectItems success: 查询到 ${res[0].rows.length} 行`, true);
-                    const len = res[0].rows.length;
-                    for (let i = 0; i < len; i++) {
-                        queryResult.push(res[0].rows.item(i));
+                    if (res && res[0] && res[0].rows) {
+                        this.successInfo(`SQLiteStorage selectItems success: 查询到 ${res[0].rows.length} 行`, true);
+                        const queryResult = [];
+                        const len = res[0].rows.length;
+                        for (let i = 0; i < len; i++) {
+                            queryResult.push(res[0].rows.item(i));
+                        }
+                        return { res: queryResult };
                     }
-                    return { res: queryResult };
+                    return { res };
                 })
                 .catch((err) => {
                     this.errorInfo('selectItems', err);

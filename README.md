@@ -165,6 +165,16 @@ Features:
         // 10.query all
         const { res, err } = await sqLiteHelper.selectItems('people', '*', null);
         ...
+
+        // 11.query some columns
+        const { res, err } = await sqliteHelper.selectItems(
+            'people',
+            ['name', 'age', 'sex'],
+            { age: 22 },
+            1,
+            5
+        );
+        ...
     }
 ```
 
