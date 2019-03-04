@@ -89,6 +89,8 @@ Features:
 ```
  // use async/await
 
+ // The { res, err } in result can only have one value at a time, the other is undefined
+
  async _handleSQLite() {
         const sqLiteHelper = new SQLiteHelper('test.db', '1.0', 'users', 2000);
 
@@ -119,7 +121,7 @@ Features:
                     dataType: 'varchar',
                 }, {
                     columnName: 'age',
-                    dataType: 'varchar',
+                    dataType: 'int',
                 }, {
                     columnName: 'sex',
                     dataType: 'varchar',
@@ -136,12 +138,12 @@ Features:
         const userData = [
             {
                 name: '张三',
-                age: '26',
+                age: 26,
                 sex: '男',
             },
             {
                 name: '李四',
-                age: '22',
+                age: 22,
                 sex: '女',
             },
         ];
@@ -162,6 +164,16 @@ Features:
 
         // 10.query all
         const { res, err } = await sqLiteHelper.selectItems('people', '*', null);
+        ...
+
+        // 11.query some columns
+        const { res, err } = await sqliteHelper.selectItems(
+            'people',
+            ['name', 'age', 'sex'],
+            { age: 22 },
+            1,
+            5
+        );
         ...
     }
 ```

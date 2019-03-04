@@ -56,3 +56,6 @@ buck-out/
 */fastlane/Preview.html
 */fastlane/screenshots
 
+# jest
+coverage
+
