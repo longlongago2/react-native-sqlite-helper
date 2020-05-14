@@ -1,10 +1,17 @@
 {
   "name": "react-native-sqlite-helper",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "react-native-sqlite-helper is based on andpor/react-native-sqlite-storage",
-  "main": "sqliteHelper.js",
+  "main": "lib/sqlite-helper.js",
   "scripts": {
-    "test": "jest --coverage"
+    "bootstrap": "npm install && cd example && npm install",
+    "android": "cd example && npm run android",
+    "start": "cd example && npm start",
+    "lib": "babel src --out-dir lib && babel lib --out-dir example/lib --copy-files",
+    "test": "jest"
+  },
+  "jest": {
+    "preset": "react-native"
   },
   "repository": {
     "type": "git",
@@ -12,10 +19,11 @@
   },
   "keywords": [
     "react-native",
-    "native",
+    "react-native-sqlite-storage",
+    "SQLite3",
     "sqlite",
-    "helper",
-    "react-native-sqlite-storage"
+    "native",
+    "plugin"
   ],
   "author": "longlongago2",
   "license": "MIT",
@@ -24,23 +32,20 @@
   },
   "homepage": "https://github.com/longlongago2/react-native-sqlite-helper#readme",
   "dependencies": {
-    "react-native": "^0.58.5",
-    "react-native-sqlite-storage": "^3.3.9"
+    "react-native": "^0.62.2",
+    "react-native-sqlite-storage": "^5.0.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.3.4",
-    "@babel/plugin-proposal-class-properties": "^7.3.4",
-    "@babel/preset-env": "^7.3.4",
-    "babel-jest": "^24.1.0",
-    "eslint": "^4.19.1",
-    "eslint-config-airbnb": "^16.1.0",
-    "eslint-plugin-import": "^2.16.0",
-    "eslint-plugin-jsx-a11y": "^6.2.1",
-    "eslint-plugin-react": "^7.12.4",
-    "jest": "^24.1.0",
-    "lodash": "^4.17.11"
-  },
-  "jest": {
-    "preset": "react-native"
+    "@babel/cli": "^7.8.4",
+    "@babel/core": "^7.9.6",
+    "@babel/preset-env": "^7.9.6",
+    "babel-jest": "^26.0.1",
+    "eslint": "^7.0.0",
+    "eslint-config-airbnb-base": "^14.1.0",
+    "eslint-plugin-import": "^2.20.2",
+    "jest": "^26.0.1",
+    "metro-react-native-babel-preset": "^0.59.0",
+    "prettier": "^2.0.5",
+    "prettier-eslint": "^9.0.1"
   }
 }
