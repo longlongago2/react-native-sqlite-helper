@@ -2,7 +2,7 @@
 
 [![996.icu](https://img.shields.io/badge/link-996.icu-red.svg)](https://996.icu) [![LICENSE](https://img.shields.io/badge/license-Anti%20996-blue.svg)](https://github.com/996icu/996.ICU/blob/master/LICENSE) [![stable](http://badges.github.io/stability-badges/dist/stable.svg)](http://github.com/badges/stability-badges)
 
-This repository is based on *[andpor/react-native-sqlite-storage](https://github.com/andpor/react-native-sqlite-storage)*, you should install and link react-native-sqlite-storage first.
+This repository is based on _[andpor/react-native-sqlite-storage](https://github.com/andpor/react-native-sqlite-storage)_, you should install and link react-native-sqlite-storage first.
 
 Features:
 
@@ -13,7 +13,6 @@ Features:
 (3) Functional SQL
 
 (4) Formatted return
-
 
 ## API
 
@@ -65,17 +64,25 @@ Features:
 
 **10.query**
 
-`sqLiteHelper.selectItems(`
+`sqliteH.selectItems(`
 
 `tableName:string,`
 
-`columns:Array<string>|*,`
+`config:Config`
 
-`condition:object|null,`
+`);`
 
-`pagination?:number,`
+`Config {`
 
-`perPageNum?:number);`
+`columns: string | string[];`
+
+`condition?: object;`
+
+`pageNo?: number;`
+
+`pageLength?: number;`
+
+`}`
 
 **11.resolve data**
 
@@ -95,10 +102,10 @@ Features:
  // The { res, err } in result can only have one value at a time, the other is undefined
 
  async _handleSQLite() {
-        const sqLiteHelper = new SQLiteHelper('test.db', '1.0', 'users', 2000);
+        const sqliteH = new SQLiteHelper('test.db', '1.0', 'users', 2000);
 
         // 1.open database
-        const { res: sqLite, err } = await sqLiteHelper.open();
+        const { res: sqLite, err } = await sqliteH.open();
         // original sqLite Instance: execute sql
         sqLite.executeSql('SELECT * FROM Employee');
         ...
@@ -108,11 +115,11 @@ Features:
         ...
 
         // 3.close database
-        const { res, err } = await sqLiteHelper.close();
+        const { res, err } = await sqliteH.close();
         ...
 
         // 4.create table
-        const { res, err } = await sqLiteHelper.createTable({
+        const { res, err } = await sqliteH.createTable({
             tableName: 'people',
             tableFields: [
                 {
@@ -134,48 +141,46 @@ Features:
         ...
 
         // 5.drop table
-        const { res, err } = await sqLiteHelper.dropTable('people');
+        const { res, err } = await sqliteH.dropTable('people');
         ...
 
         // 6.insert items
         const userData = [
             {
-                name: 'Lily',
+                name: '张三',
                 age: 26,
-                sex: 'male',
+                sex: '男',
             },
             {
-                name: 'Mike',
+                name: '李四',
                 age: 22,
-                sex: 'female',
+                sex: '女',
             },
         ];
-        const { res, err } = await sqLiteHelper.insertItems('people', userData);
+        const { res, err } = await sqliteH.insertItems('people', userData);
         ...
 
         // 7.delete item
-        const { res, err } = await sqLiteHelper.deleteItem('people', { name: 'zhanggl' });
+        const { res, err } = await sqliteH.deleteItem('people', { name: 'zhanggl' });
         ...
 
         // 8.update item
-        const { res, err } = await sqLiteHelper.updateItem('people', { name: 'XiaoMing' }, { name: 'XiaoZhang', age: '22' });
+        const { res, err } = await sqliteH.updateItem('people', { name: 'XiaoMing' }, { name: 'XiaoZhang', age: '22' });
         ...
 
-        // 9.query: the first page, five items per page
-        const { res, err } = await sqLiteHelper.selectItems('people', '*', null, 1, 5);
+        // 9.query all
+        const { res, err } = await sqliteH.selectItems('people', '*');
         ...
 
-        // 10.query all
-        const { res, err } = await sqLiteHelper.selectItems('people', '*', null);
-        ...
-
-        // 11.query some columns
+        // 10.query some columns
         const { res, err } = await sqliteHelper.selectItems(
             'people',
-            ['name', 'age', 'sex'],
-            { age: 22 },
-            1,
-            5
+            {
+                columns: ['name', 'age', 'sex'],
+                condition: { sex: '男' },
+                pageNo: 1,
+                pageLength: 5
+            }
         );
         ...
     }

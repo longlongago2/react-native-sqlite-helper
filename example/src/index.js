@@ -9,7 +9,7 @@ class Index extends PureComponent {
   constructor(props) {
     super(props);
     this.state = {
-      consoleText: 'console loaded\n',
+      consoleText: 'sqlite is ready.\nconsole loaded.',
       sqlStr: '',
     };
     this.consolePanel = React.createRef();
@@ -32,7 +32,7 @@ class Index extends PureComponent {
           const {consoleText} = prevState;
           return {consoleText: `${consoleText}\n${successInfo}`};
         },
-        () => this.consolePanel.current.scrollToEnd({animated: true}),
+        () => requestAnimationFrame(() => this.consolePanel.current.scrollToEnd({animated: true})),
       );
     err &&
       this.setState(
@@ -41,7 +41,7 @@ class Index extends PureComponent {
           const {consoleText} = prevState;
           return {consoleText: `${consoleText}\n${resolveErrorInfo}`};
         },
-        () => this.consolePanel.current.scrollToEnd({animated: true}),
+        () => requestAnimationFrame(() => this.consolePanel.current.scrollToEnd({animated: true})),
       );
   }
 
@@ -175,25 +175,28 @@ class Index extends PureComponent {
             <Button title="打开数据库" onPress={this.handleOpen} />
           </View>
           <View style={{width: 100, margin: 5}}>
-            <Button title="关闭数据库" onPress={this.handleClose} />
-          </View>
-          <View style={{width: 100, margin: 5}}>
-            <Button title="删除数据库" onPress={this.handleDelete} />
-          </View>
-          <View style={{width: 100, margin: 5}}>
             <Button title="创建表" onPress={this.handleCreateTable} />
-          </View>
-          <View style={{width: 100, margin: 5}}>
-            <Button title="删除表" onPress={this.handleDropTable} />
           </View>
           <View style={{width: 100, margin: 5}}>
             <Button title="插入数据" onPress={this.handleInsertItems} />
           </View>
           <View style={{width: 100, margin: 5}}>
+            <Button title="查询数据" onPress={this.handleSelectItems} />
+          </View>
+          <View style={{width: 100, margin: 5}}>
             <Button title="更改数据" onPress={this.handleUpdateItem} />
           </View>
           <View style={{width: 100, margin: 5}}>
-            <Button title="查询数据" onPress={this.handleSelectItems} />
+            <Button title="重新查数据" onPress={this.handleSelectItems} />
+          </View>
+          <View style={{width: 100, margin: 5}}>
+            <Button title="关闭数据库" onPress={this.handleClose} />
+          </View>
+          <View style={{width: 100, margin: 5}}>
+            <Button title="删除表" onPress={this.handleDropTable} />
+          </View>
+          <View style={{width: 100, margin: 5}}>
+            <Button title="删除数据库" onPress={this.handleDelete} />
           </View>
         </View>
         <View style={{flex: -1, height: 50, flexDirection: 'row'}}>
@@ -214,7 +217,7 @@ class Index extends PureComponent {
         </View>
         <View style={{flex: -1, height: 50, flexDirection: 'row'}}>
           <View style={{width: 100, margin: 5}}>
-            <Button title="清屏" color="red" onPress={() => this.setState({consoleText: 'clear\n'})} />
+            <Button title="清屏" color="red" onPress={() => this.setState({consoleText: 'console cleared\n'})} />
           </View>
         </View>
         <ScrollView style={{flex: 1}} ref={this.consolePanel}>

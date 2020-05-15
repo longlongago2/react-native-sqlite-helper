@@ -6,7 +6,9 @@
   "scripts": {
     "bootstrap": "npm install && cd example && npm install",
     "android": "cd example && npm run android",
+    "preandroid": "npm run lib",
     "start": "cd example && npm start",
+    "prestart": "npm run lib",
     "lib": "babel src --out-dir lib && babel lib --out-dir example/lib --copy-files",
     "test": "jest"
   },

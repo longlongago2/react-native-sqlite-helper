@@ -2,7 +2,7 @@
 
 [![996.icu](https://img.shields.io/badge/link-996.icu-red.svg)](https://996.icu) [![LICENSE](https://img.shields.io/badge/license-Anti%20996-blue.svg)](https://github.com/996icu/996.ICU/blob/master/LICENSE) [![stable](http://badges.github.io/stability-badges/dist/stable.svg)](http://github.com/badges/stability-badges)
 
-这个库是基于 *[andpor/react-native-sqlite-storage](https://github.com/andpor/react-native-sqlite-storage)* ，请先 install 和 link react-native-sqlite-storage。
+这个库是基于 _[andpor/react-native-sqlite-storage](https://github.com/andpor/react-native-sqlite-storage)_ ，请先 install 和 link react-native-sqlite-storage。
 
 特点：
 
@@ -14,14 +14,13 @@
 
 (4) 格式化的输出
 
-
 ## API
 
 **1、实例化**
 
 `import SQLiteHelper from 'react-native-sqlite-helper';`
 
-`const sqLiteHelper = new SQLiteHelper(`
+`const sqliteH = new SQLiteHelper(`
 
 `databaseName:string,`
 
@@ -33,11 +32,11 @@
 
 **2、打开 database**
 
-`sqLiteHelper.open();`
+`sqliteH.open();`
 
 **3、关闭 database**
 
-`sqLiteHelper.close();`
+`sqliteH.close();`
 
 **4、删除 database（静态方法）**
 
@@ -45,39 +44,45 @@
 
 **5、创建表**
 
-`sqLiteHelper.createTable(tableInfo:object);`
+`sqliteH.createTable(tableInfo:object);`
 
 **6、删除表**
 
-`sqLiteHelper.dropTable(tableName:string);`
+`sqliteH.dropTable(tableName:string);`
 
 **7、插入数据（支持多条）**
 
-`sqLiteHelper.insertItems(tableName:string,items:Array<object>);`
+`sqliteH.insertItems(tableName:string,items:Array<object>);`
 
 **8、删除数据**
 
-`sqLiteHelper.deleteItem(tableName:string,condition:object);`
+`sqliteH.deleteItem(tableName:string,condition:object);`
 
 **9、更新数据**
 
-`sqLiteHelper.updateItem(tableName:string,item:object,condition:object);`
+`sqliteH.updateItem(tableName:string,item:object,condition:object);`
 
 **10、查询数据**
 
-`sqLiteHelper.selectItems(`
+`sqliteH.selectItems(`
 
 `tableName:string,`
 
-`columns:Array<string>|*,`
-
-`condition:object|null,`
-
-`pagination?:number,`
-
-`perPageNum?:number`
+`config:Config`
 
 `);`
+
+`Config {`
+
+`columns: string | string[];`
+
+`condition?: object;`
+
+`pageNo?: number;`
+
+`pageLength?: number;`
+
+`}`
 
 **11、返回值格式**
 
@@ -97,10 +102,10 @@
  // The { res, err } in result can only have one value at a time, the other is undefined
 
  async _handleSQLite() {
-        const sqLiteHelper = new SQLiteHelper('test.db', '1.0', 'users', 2000);
+        const sqliteH = new SQLiteHelper('test.db', '1.0', 'users', 2000);
 
         // 1.open database
-        const { res: sqLite, err } = await sqLiteHelper.open();
+        const { res: sqLite, err } = await sqliteH.open();
         // original sqLite Instance: execute sql
         sqLite.executeSql('SELECT * FROM Employee');
         ...
@@ -110,11 +115,11 @@
         ...
 
         // 3.close database
-        const { res, err } = await sqLiteHelper.close();
+        const { res, err } = await sqliteH.close();
         ...
 
         // 4.create table
-        const { res, err } = await sqLiteHelper.createTable({
+        const { res, err } = await sqliteH.createTable({
             tableName: 'people',
             tableFields: [
                 {
@@ -136,7 +141,7 @@
         ...
 
         // 5.drop table
-        const { res, err } = await sqLiteHelper.dropTable('people');
+        const { res, err } = await sqliteH.dropTable('people');
         ...
 
         // 6.insert items
@@ -152,32 +157,30 @@
                 sex: '女',
             },
         ];
-        const { res, err } = await sqLiteHelper.insertItems('people', userData);
+        const { res, err } = await sqliteH.insertItems('people', userData);
         ...
 
         // 7.delete item
-        const { res, err } = await sqLiteHelper.deleteItem('people', { name: 'zhanggl' });
+        const { res, err } = await sqliteH.deleteItem('people', { name: 'zhanggl' });
         ...
 
         // 8.update item
-        const { res, err } = await sqLiteHelper.updateItem('people', { name: 'XiaoMing' }, { name: 'XiaoZhang', age: '22' });
+        const { res, err } = await sqliteH.updateItem('people', { name: 'XiaoMing' }, { name: 'XiaoZhang', age: '22' });
         ...
 
-        // 9.query: the first page, five items per page
-        const { res, err } = await sqLiteHelper.selectItems('people', '*', null, 1, 5);
+        // 9.query all
+        const { res, err } = await sqliteH.selectItems('people', '*');
         ...
 
-        // 10.query all
-        const { res, err } = await sqLiteHelper.selectItems('people', '*', null);
-        ...
-
-        // 11.query some columns
+        // 10.query some columns
         const { res, err } = await sqliteHelper.selectItems(
             'people',
-            ['name', 'age', 'sex'],
-            { age: 22 },
-            1,
-            5
+            {
+                columns: ['name', 'age', 'sex'],
+                condition: { sex: '男' },
+                pageNo: 1,
+                pageLength: 5
+            }
         );
         ...
     }

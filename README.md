@@ -40,3 +40,7 @@ This repository is based on *[andpor/react-native-sqlite-storage](https://github
 ## License
 
 MIT
+
+## Sample display
+
+![Sample display](./static/demo.gif)
