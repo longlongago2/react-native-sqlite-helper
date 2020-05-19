@@ -15,7 +15,7 @@ module.exports = {
   // clearMocks: false,
 
   // Indicates whether the coverage information should be collected while executing the test
-  // collectCoverage: false,
+  collectCoverage: true,
 
   // An array of glob patterns indicating a set of files for which coverage information should be collected
   // collectCoverageFrom: undefined,
@@ -56,7 +56,8 @@ module.exports = {
 
   // A set of global variables that need to be available in all test environments
   globals: {
-    __DEV__: true,
+    __DEV__: false,
+    __fbBatchedBridgeConfig: 'mock',
   },
 
   // The maximum amount of workers used to run your tests. Can be specified as % or a number. E.g. maxWorkers: 10% will use 10% of your CPU amount + 1 as the maximum worker number. maxWorkers: 2 will use a maximum of 2 workers.

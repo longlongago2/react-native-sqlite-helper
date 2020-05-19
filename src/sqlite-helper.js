@@ -106,7 +106,7 @@ export default class SQLite {
         });
     }
     this.warningInfo('Database was not OPENED');
-    return null;
+    return { res: 'Database was not OPENED' };
   }
 
   async _createTable(tableInfo) {
