@@ -1,3 +1,4 @@
 _tests_
 *.config.js
 coverage
+lib/*
