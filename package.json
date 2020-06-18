@@ -1,6 +1,6 @@
 {
   "name": "react-native-sqlite-helper",
-  "version": "1.2.0",
+  "version": "1.1.2",
   "description": "react-native-sqlite-helper is based on andpor/react-native-sqlite-storage",
   "main": "lib/sqlite-helper.js",
   "scripts": {
@@ -10,7 +10,8 @@
     "start": "cd example && npm start",
     "prestart": "npm run lib",
     "lib": "babel src --out-dir lib && babel lib --out-dir example/lib --copy-files",
-    "test": "jest"
+    "test": "jest",
+    "prepublish": "npm run lib"
   },
   "jest": {
     "preset": "react-native"

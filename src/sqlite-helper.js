@@ -11,6 +11,8 @@ function isObject(target) {
   return Object.prototype.toString.call(target) === '[object Object]';
 }
 
+// TODO: condition 支持大于小于等于等任何复杂条件的筛选，现在只简单支持等于
+
 export default class SQLite {
   static async delete(databaseName) {
     return SQLiteStorage.deleteDatabase(databaseName)
@@ -265,7 +267,7 @@ export default class SQLite {
     }
   }
 
-  async _selectItems(tableName, config) {
+  async _selectItems(tableName, config = {}) {
     try {
       const {
         columns = '*', condition, pageNo, pageLength,
