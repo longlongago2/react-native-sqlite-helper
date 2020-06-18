@@ -6,12 +6,11 @@
   "scripts": {
     "bootstrap": "npm install && cd example && npm install",
     "android": "cd example && npm run android",
-    "preandroid": "npm run lib",
+    "preandroid": "npm run build",
     "start": "cd example && npm start",
-    "prestart": "npm run lib",
-    "lib": "babel src --out-dir lib && babel lib --out-dir example/lib --copy-files",
-    "test": "jest",
-    "prepublish": "npm run lib"
+    "prestart": "npm run build",
+    "build": "babel src --out-dir lib && babel lib --out-dir example/lib --copy-files",
+    "test": "jest"
   },
   "jest": {
     "preset": "react-native"
