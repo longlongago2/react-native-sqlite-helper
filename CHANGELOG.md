@@ -2,7 +2,7 @@
 
 > The version No. follows [Semantic Versioning 2.0.0](https://semver.org/)
 
-### v1.1.2 (2020/06/18)
+### v1.1.3 (2020/06/18)
 
 #### optimization: 
 
