@@ -10,7 +10,7 @@
     "start": "cd example && npm start",
     "prestart": "npm run build",
     "build": "babel src --out-dir lib && babel lib --out-dir example/lib --copy-files",
-    "prepublish": "npm run build",
+    "prepare": "npm run build",
     "test": "jest"
   },
   "jest": {
