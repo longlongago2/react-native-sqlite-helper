@@ -11,8 +11,6 @@ function isObject(target) {
   return Object.prototype.toString.call(target) === '[object Object]';
 }
 
-// TODO: condition 支持大于小于等于等任何复杂条件的筛选，现在只简单支持等于
-
 export default class SQLite {
   static async delete(databaseName) {
     return SQLiteStorage.deleteDatabase(databaseName)
@@ -194,7 +192,7 @@ export default class SQLite {
     }
   }
 
-  async _deleteItem(tableName, condition) {
+  async _deleteItem(tableName, conditions) {
     try {
       if (!tableName) throw new Error('Required parameter missing');
       if (!this.db) {
@@ -202,12 +200,33 @@ export default class SQLite {
         if (err) throw err;
       }
       let sqlStr;
-      if (isObject(condition) && !isEmptyObj(condition)) {
-        const conditionKeys = Object.keys(condition);
-        sqlStr = conditionKeys.reduce(
-          (sqlSegment, conditionKey, index, arr) => `${sqlSegment} ${conditionKey}=${typeof condition[conditionKey] !== 'number' ? `'${condition[conditionKey]}'` : condition[conditionKey]} ${index + 1 !== arr.length ? 'AND' : ';'}`,
-          `DELETE FROM ${tableName} WHERE`,
-        );
+      if (conditions) {
+        // Support [AND, OR, SQL]
+        if (Array.isArray(conditions) && conditions.length > 0) {
+          // AND
+          sqlStr = conditions.reduce((sqlSegment, condition, index, arr) => {
+            const { columnName, operator = '=', value } = condition;
+            if (columnName && value) {
+              const _value = typeof value !== 'number' ? `'${value}'` : value;
+              return `${sqlSegment} ${columnName}${operator}${_value} ${index + 1 !== arr.length ? 'AND' : ';'}`;
+            }
+            return '';
+          }, `DELETE FROM ${tableName} WHERE`);
+        } else if (isObject(conditions) && !isEmptyObj(conditions)) {
+          // OR
+          const { combine = 'OR', conditions: _conditions } = conditions;
+          sqlStr = _conditions.reduce((sqlSegment, condition, index, arr) => {
+            const { columnName, operator = '=', value } = condition;
+            if (columnName && value) {
+              const _value = typeof value !== 'number' ? `'${value}'` : value;
+              return `${sqlSegment} ${columnName}${operator}${_value} ${index + 1 !== arr.length ? combine : ';'}`;
+            }
+            return '';
+          }, `DELETE FROM ${tableName} WHERE`);
+        } else if (typeof conditions === 'string') {
+          // SQL
+          sqlStr = `DELETE FROM ${tableName} WHERE ${conditions};`;
+        }
       } else {
         sqlStr = `DELETE FROM ${tableName};`;
       }
@@ -226,7 +245,7 @@ export default class SQLite {
     }
   }
 
-  async _updateItem(tableName, item, condition) {
+  async _updateItem(tableName, item, conditions) {
     try {
       if (!tableName || !item) throw new Error('Required parameter missing');
       if (typeof tableName !== 'string') {
@@ -245,12 +264,33 @@ export default class SQLite {
         (sqlSegment, columnName, index, arr) => `${sqlSegment} ${columnName}=${typeof item[columnName] !== 'number' ? `'${item[columnName]}'` : item[columnName]} ${index + 1 !== arr.length ? ',' : ''}`,
         `UPDATE ${tableName} SET`,
       );
-      if (condition && condition !== {} && typeof condition === 'object') {
-        const conditionKeys = Object.keys(condition);
-        sqlStr += conditionKeys.reduce(
-          (sqlSegment, conditionKey, index, arr) => `${sqlSegment} ${conditionKey}=${typeof condition[conditionKey] !== 'number' ? `'${condition[conditionKey]}'` : condition[conditionKey]} ${index + 1 !== arr.length ? 'AND' : ';'}`,
-          ' WHERE',
-        );
+      if (conditions) {
+        // Support [AND, OR, SQL]
+        if (Array.isArray(conditions) && conditions.length > 0) {
+          // AND
+          sqlStr += conditions.reduce((sqlSegment, condition, index, arr) => {
+            const { columnName, operator = '=', value } = condition;
+            if (columnName && value) {
+              const _value = typeof value !== 'number' ? `'${value}'` : value;
+              return `${sqlSegment} ${columnName}${operator}${_value} ${index + 1 !== arr.length ? 'AND' : ';'}`;
+            }
+            return '';
+          }, 'WHERE');
+        } else if (isObject(conditions) && !isEmptyObj(conditions)) {
+          // OR
+          const { combine = 'OR', conditions: _conditions } = conditions;
+          sqlStr += _conditions.reduce((sqlSegment, condition, index, arr) => {
+            const { columnName, operator = '=', value } = condition;
+            if (columnName && value) {
+              const _value = typeof value !== 'number' ? `'${value}'` : value;
+              return `${sqlSegment} ${columnName}${operator}${_value} ${index + 1 !== arr.length ? combine : ';'}`;
+            }
+            return '';
+          }, 'WHERE');
+        } else if (typeof conditions === 'string') {
+          // SQL
+          sqlStr += `WHERE ${conditions};`;
+        }
       } else sqlStr += ';';
       return await this.db
         .executeSql(sqlStr)
@@ -270,7 +310,7 @@ export default class SQLite {
   async _selectItems(tableName, config = {}) {
     try {
       const {
-        columns = '*', condition, pageNo, pageLength,
+        columns = '*', conditions, pageNo, pageLength,
       } = config;
       if (!tableName) throw new Error('Required parameter missing');
       if (!this.db) {
@@ -279,25 +319,67 @@ export default class SQLite {
       }
       let sqlStr;
       if (columns === '*') {
-        if (isObject(condition) && !isEmptyObj(condition)) {
-          const conditionKeys = Object.keys(condition);
-          sqlStr = conditionKeys.reduce(
-            (sqlSegment, conditionKey, index, arr) => `${sqlSegment} ${conditionKey}=${typeof condition[conditionKey] !== 'number' ? `'${condition[conditionKey]}'` : condition[conditionKey]} ${index + 1 !== arr.length ? 'AND' : ''}`,
-            `SELECT * FROM ${tableName} WHERE`,
-          );
+        if (conditions) {
+          // Support [AND, OR, SQL]
+          if (Array.isArray(conditions) && conditions.length > 0) {
+            // AND
+            sqlStr = conditions.reduce((sqlSegment, condition, index, arr) => {
+              const { columnName, operator = '=', value } = condition;
+              if (columnName && value) {
+                const _value = typeof value !== 'number' ? `'${value}'` : value;
+                return `${sqlSegment} ${columnName}${operator}${_value} ${index + 1 !== arr.length ? 'AND' : ''}`;
+              }
+              return '';
+            }, `SELECT * FROM ${tableName} WHERE`);
+          } else if (isObject(conditions) && !isEmptyObj(conditions)) {
+            // OR
+            const { combine = 'OR', conditions: _conditions } = conditions;
+            sqlStr = _conditions.reduce((sqlSegment, condition, index, arr) => {
+              const { columnName, operator = '=', value } = condition;
+              if (columnName && value) {
+                const _value = typeof value !== 'number' ? `'${value}'` : value;
+                return `${sqlSegment} ${columnName}${operator}${_value} ${index + 1 !== arr.length ? combine : ''}`;
+              }
+              return '';
+            }, `SELECT * FROM ${tableName} WHERE`);
+          } else if (typeof conditions === 'string') {
+            // SQL
+            sqlStr = `SELECT * FROM ${tableName} WHERE ${conditions};`;
+          }
         } else {
           sqlStr = `SELECT * FROM ${tableName}`;
         }
       } else {
         sqlStr = columns.reduce((sqlSegment, column, index, arr) => `${sqlSegment} ${column} ${index + 1 !== arr.length ? ',' : ''}`, 'SELECT');
-        if (isObject(condition) && !isEmptyObj(condition)) {
-          const conditionKeys = Object.keys(condition);
-          sqlStr += conditionKeys.reduce(
-            (sqlSegment, conditionKey, index, arr) => `${sqlSegment} ${conditionKey}=${typeof condition[conditionKey] !== 'number' ? `'${condition[conditionKey]}'` : condition[conditionKey]} ${index + 1 !== arr.length ? 'AND' : ''}`,
-            ` FROM ${tableName} WHERE`,
-          );
+        if (conditions) {
+          // Support [AND, OR, SQL]
+          if (Array.isArray(conditions) && conditions.length > 0) {
+            // AND
+            sqlStr += conditions.reduce((sqlSegment, condition, index, arr) => {
+              const { columnName, operator = '=', value } = condition;
+              if (columnName && value) {
+                const _value = typeof value !== 'number' ? `'${value}'` : value;
+                return `${sqlSegment} ${columnName}${operator}${_value} ${index + 1 !== arr.length ? 'AND' : ''}`;
+              }
+              return '';
+            }, `FROM ${tableName} WHERE`);
+          } else if (isObject(conditions) && !isEmptyObj(conditions)) {
+            // OR
+            const { combine = 'OR', conditions: _conditions } = conditions;
+            sqlStr += _conditions.reduce((sqlSegment, condition, index, arr) => {
+              const { columnName, operator = '=', value } = condition;
+              if (columnName && value) {
+                const _value = typeof value !== 'number' ? `'${value}'` : value;
+                return `${sqlSegment} ${columnName}${operator}${_value} ${index + 1 !== arr.length ? combine : ''}`;
+              }
+              return '';
+            }, `FROM ${tableName} WHERE`);
+          } else if (typeof conditions === 'string') {
+            // SQL
+            sqlStr += `FROM ${tableName} WHERE ${conditions}`;
+          }
         } else {
-          sqlStr += ` FROM ${tableName}`;
+          sqlStr += `FROM ${tableName}`;
         }
       }
       if (pageNo && pageLength) {

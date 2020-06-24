@@ -122,7 +122,16 @@ class Index extends PureComponent {
 
   async _handleUpdateItem() {
     // 更改数据
-    const {res, err} = await sqliteH.updateItem('people', {age: '100'}, {name: '张琦', age: '22'});
+    const { res, err } = await sqliteH.updateItem('people', { age: '100' }, [
+      {
+        columnName: 'name',
+        value: '张琦',
+      },
+      {
+        columnName: 'age',
+        value: '22',
+      },
+    ]);
     this.handleConsoleLog(res, err, '更改数据成功！', '更改数据失败！');
   }
 
