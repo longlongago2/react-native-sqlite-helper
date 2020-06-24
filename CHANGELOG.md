@@ -2,6 +2,12 @@
 
 > The version No. follows [Semantic Versioning 2.0.0](https://semver.org/)
 
+### v1.1.4 (2020/6/24)
+
+#### optimization: 
+
+* Conditions support operator [AND, OR, SQL]
+
 ### v1.1.3 (2020/06/18)
 
 #### optimization: 

@@ -243,16 +243,32 @@ describe('> Test instance method: deleteItem', () => {
 
     const sqliteHelper = new SQLiteHelper('test.db', '1.0', 'users', 2000);
     // 有条件的删除
-    const { res, err } = await sqliteHelper.deleteItem('people', {
-      name: 'mike',
-      age: 26,
-    });
+    // AND
+    const { res, err } = await sqliteHelper.deleteItem('people', [
+      { columnName: 'name', value: 'mike' },
+      { columnName: 'age', value: 26 },
+    ]);
     expect(res).toEqual('DELETE FROM people WHERE name=\'mike\' AND age=26 ;');
     expect(err).toBeUndefined();
-    // 无条件删除
-    const { res: res1, err: err1 } = await sqliteHelper.deleteItem('people');
-    expect(res1).toEqual('DELETE FROM people;');
+    // OR
+    const { res: res1, err: err1 } = await sqliteHelper.deleteItem('people', {
+      combine: 'OR',
+      conditions: [
+        { columnName: 'name', value: 'Mike' },
+        { columnName: 'name', value: 'Lily' },
+      ]
+    });
+    expect(res1).toEqual('DELETE FROM people WHERE name=\'Mike\' OR name=\'Lily\' ;');
     expect(err1).toBeUndefined();
+    // SQL
+    const { res: res2, err: err2 } = await sqliteHelper.deleteItem('people', 'not age >= 30');
+    expect(res2).toEqual('DELETE FROM people WHERE not age >= 30;');
+    expect(err2).toBeUndefined();
+
+    // 无条件删除
+    const { res: res3, err: err3 } = await sqliteHelper.deleteItem('people');
+    expect(res3).toEqual('DELETE FROM people;');
+    expect(err3).toBeUndefined();
   });
 
   test('sqliteHelper deleteItem failed', async () => {
@@ -282,13 +298,45 @@ describe('> Test instance method: updateItem', () => {
 
     const sqliteHelper = new SQLiteHelper('test.db', '1.0', 'users', 2000);
     // 有条件condition
-    const { res, err } = await sqliteHelper.updateItem('people', { name: 'Mike', age: 21 }, { userid: 18033281, type: '01' });
-    expect(res).toEqual('UPDATE people SET name=\'Mike\' , age=21  WHERE userid=18033281 AND type=\'01\' ;');
+    // AND
+    const { res, err } = await sqliteHelper.updateItem('people', { pass: 'YES' }, [
+      {
+        columnName: 'age',
+        value: 35,
+        operator: '<=',
+      },
+      {
+        columnName: 'sex',
+        value: 'male',
+      }
+    ]);
+    expect(res).toEqual('UPDATE people SET pass=\'YES\' WHERE age<=35 AND sex=\'male\' ;');
     expect(err).toBeUndefined();
-    // 无条件condition
-    const { res: res1, err: err1 } = await sqliteHelper.updateItem('people', { name: 'Mike', age: 21 });
-    expect(res1).toEqual('UPDATE people SET name=\'Mike\' , age=21 ;');
+    // OR
+    const { res: res1, err: err1 } = await sqliteHelper.updateItem('people', { pass: 'YES' }, {
+      combine: 'OR',
+      conditions: [
+        {
+          columnName: 'age',
+          value: 35,
+          operator: '<=',
+        },
+        {
+          columnName: 'sex',
+          value: 'male',
+        }
+      ],
+    });
+    expect(res1).toEqual('UPDATE people SET pass=\'YES\' WHERE age<=35 OR sex=\'male\' ;');
     expect(err1).toBeUndefined();
+    // SQL
+    const { res: res2, err: err2 } = await sqliteHelper.updateItem('people', { name: 'Mike', age: 21 }, 'age>=35');
+    expect(res2).toEqual('UPDATE people SET name=\'Mike\' , age=21 WHERE age>=35;');
+    expect(err2).toBeUndefined();
+    // 无条件condition
+    const { res: res3, err: err3 } = await sqliteHelper.updateItem('people', { name: 'Mike', age: 21 });
+    expect(res3).toEqual('UPDATE people SET name=\'Mike\' , age=21 ;');
+    expect(err3).toBeUndefined();
   });
 
   test('sqliteHelper updateItem failed', async () => {
@@ -332,13 +380,29 @@ describe('> Test instance method: selectItems', () => {
     expect(err).toBeUndefined();
 
     // 某列 有条件
+    // AND
     const config = {
       columns: ['name', 'age', 'sex'],
-      condition: { age: 22 },
+      conditions: [{ columnName: 'age', value: 22, operator: '>=' }],
     };
     const { res: res1, err: err1 } = await sqliteHelper.selectItems('people', config);
-    expect(res1).toEqual('SELECT name , age , sex  FROM people WHERE age=22 ;');
+    expect(res1).toEqual('SELECT name , age , sex FROM people WHERE age>=22 ;');
     expect(err1).toBeUndefined();
+
+    // OR
+    const config5 = {
+      columns: ['name', 'age', 'sex'],
+      conditions: {
+        combine: 'OR',
+        conditions: [
+          { columnName: 'age', value: 22, operator: '>=' },
+          { columnName: 'sex', value: 'male', operator: '=' },
+        ]
+      },
+    };
+    const { res: res5, err: err5 } = await sqliteHelper.selectItems('people', config5);
+    expect(res5).toEqual('SELECT name , age , sex FROM people WHERE age>=22 OR sex=\'male\' ;');
+    expect(err5).toBeUndefined();
 
     // 某列 无条件 有页码
     const config2 = {
@@ -348,16 +412,16 @@ describe('> Test instance method: selectItems', () => {
       pageLength: 5,
     };
     const { res: res2, err: err2 } = await sqliteHelper.selectItems('people', config2);
-    expect(res2).toEqual('SELECT name , age , sex  FROM people limit 5 offset 0;');
+    expect(res2).toEqual('SELECT name , age , sex FROM people limit 5 offset 0;');
     expect(err2).toBeUndefined();
 
     // 所有列 有条件
     const config3 = {
       columns: '*',
-      condition: { name: 'mike' },
+      conditions: [{ columnName: 'age', value: 22, operator: '>=' }],
     };
     const { res: res3, err: err3 } = await sqliteHelper.selectItems('people', config3);
-    expect(res3).toEqual('SELECT * FROM people WHERE name=\'mike\' ;');
+    expect(res3).toEqual('SELECT * FROM people WHERE age>=22 ;');
     expect(err3).toBeUndefined();
 
     // 清除上面openDatabase模拟方法
